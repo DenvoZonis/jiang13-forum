@@ -20,7 +20,7 @@ async function request<T>(url: string, opts: RequestInit = {}): Promise<T> {
   if (!res.ok) throw new Error((data.error as string) || '请求失败');
   return data as T;
 }
-
+2026091603013
 export const api = {
   me: () => request<{ user: User | null }>('/api/me'),
   stats: () => request<ForumStats>('/api/stats'),
