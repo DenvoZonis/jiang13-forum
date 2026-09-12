@@ -47,6 +47,7 @@ const SETTING_SECTIONS: SettingSection[] = [
       { key: 'post_edit_window_hours', label: '帖子可编辑时限', unit: '小时', hint: '0 = 不限', min: 0 },
       { key: 'post_delete_window_hours', label: '帖主可删除时限', unit: '小时', hint: '帖主在此时间内可删除自己的帖子；0 = 不限', min: 0 },
       { key: 'comment_edit_window_minutes', label: '评论可编辑时限', unit: '分钟', hint: '0 = 不限', min: 0 },
+      { key: 'comment_delete_window_minutes', label: '评论作者可删除时限', unit: '分钟', hint: '评论作者在此时间内可删除自己的评论；0 = 不限', min: 0 },
     ],
   },
   {

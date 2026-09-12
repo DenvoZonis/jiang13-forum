@@ -14,9 +14,10 @@ import (
 
 // 论坛设置键名
 const (
-	SettingPostEditWindowHours      = "post_edit_window_hours"
-	SettingPostDeleteWindowHours    = "post_delete_window_hours"
-	SettingCommentEditWindowMinutes = "comment_edit_window_minutes"
+	SettingPostEditWindowHours        = "post_edit_window_hours"
+	SettingPostDeleteWindowHours      = "post_delete_window_hours"
+	SettingCommentEditWindowMinutes   = "comment_edit_window_minutes"
+	SettingCommentDeleteWindowMinutes = "comment_delete_window_minutes"
 
 	SettingRateLimitPost     = "rate_limit_post"
 	SettingRateLimitComment  = "rate_limit_comment"
@@ -111,11 +112,11 @@ const (
 	SettingCommunityHubURL        = "community_hub_url"
 	SettingCommunitySiteURL       = "community_site_url" // 上报用的本站公开地址（可回退 OIDC ROOT_URL）
 
-	SettingMonitorEnabled           = "monitor_enabled"
-	SettingMonitorRetention         = "monitor_retention_days"
+	SettingMonitorEnabled            = "monitor_enabled"
+	SettingMonitorRetention          = "monitor_retention_days"
 	SettingMonitorAccessLogRetention = "monitor_access_log_retention_days"
-	SettingMonitorExclude           = "monitor_exclude_json"
-	SettingMonitorTrustProxy        = "monitor_trust_proxy"
+	SettingMonitorExclude            = "monitor_exclude_json"
+	SettingMonitorTrustProxy         = "monitor_trust_proxy"
 
 	// DefaultCommunityHubURL 官方演示站（社区枢纽默认地址）
 	DefaultCommunityHubURL = "https://bbs.iioio.com"
@@ -132,9 +133,10 @@ const (
 
 // ForumLimits 论坛可配置限制（API 传输结构）
 type ForumLimits struct {
-	PostEditWindowHours      int `json:"post_edit_window_hours"`
-	PostDeleteWindowHours    int `json:"post_delete_window_hours"`
-	CommentEditWindowMinutes int `json:"comment_edit_window_minutes"`
+	PostEditWindowHours        int `json:"post_edit_window_hours"`
+	PostDeleteWindowHours      int `json:"post_delete_window_hours"`
+	CommentEditWindowMinutes   int `json:"comment_edit_window_minutes"`
+	CommentDeleteWindowMinutes int `json:"comment_delete_window_minutes"`
 
 	RateLimitPost      int `json:"rate_limit_post"`
 	RateLimitComment   int `json:"rate_limit_comment"`
@@ -174,7 +176,7 @@ type ForumLimits struct {
 	NavShowShowcase         bool          `json:"nav_show_showcase"`
 	FooterShowShowcase      bool          `json:"footer_show_showcase"`
 
-	FeedListStyle string       `json:"feed_list_style"`
+	FeedListStyle string        `json:"feed_list_style"`
 	FeedSortTabs  []FeedSortTab `json:"feed_sort_tabs"`
 
 	PermalinkEnabled bool   `json:"permalink_enabled"`
@@ -189,8 +191,8 @@ type AsideWidget struct {
 
 // FeedSortTab 首页 Feed 排序标签（名称 / 顺序 / 启停）
 type FeedSortTab struct {
-	ID      string `json:"id"`      // reply | latest | hot
-	Label   string `json:"label"`   // 展示名
+	ID      string `json:"id"`    // reply | latest | hot
+	Label   string `json:"label"` // 展示名
 	Enabled bool   `json:"enabled"`
 }
 
@@ -243,7 +245,8 @@ type ForumLimitsPublic struct {
 	PostFileMaxCount    int      `json:"post_file_max_count"`
 	PostFileMaxMB       int      `json:"post_file_max_mb"`
 
-	CommentEditWindowMinutes int `json:"comment_edit_window_minutes"`
+	CommentEditWindowMinutes   int `json:"comment_edit_window_minutes"`
+	CommentDeleteWindowMinutes int `json:"comment_delete_window_minutes"`
 
 	OpenPostsInNewTab        bool `json:"open_posts_in_new_tab"`
 	OpenContentLinksInNewTab bool `json:"open_content_links_in_new_tab"`
@@ -279,6 +282,7 @@ var forumSettingDefs = []settingDef{
 	{SettingPostEditWindowHours, "24", 0, 0},
 	{SettingPostDeleteWindowHours, "24", 0, 0},
 	{SettingCommentEditWindowMinutes, "3", 0, 0},
+	{SettingCommentDeleteWindowMinutes, "0", 0, 0},
 
 	{SettingRateLimitPost, "10", 1, 1000},
 	{SettingRateLimitComment, "10", 1, 1000},
@@ -496,22 +500,22 @@ type CommunityConfig struct {
 
 // MonitorConfig 网站监控采集设置
 type MonitorConfig struct {
-	Enabled                  bool     `json:"enabled"`
-	RetentionDays            int      `json:"retention_days"`              // page_views 保留
-	AccessLogRetentionDays   int      `json:"access_log_retention_days"`   // JSONL 请求日志保留
-	ExcludeRules             []string `json:"exclude_rules"`
-	DefaultExcludeRules      []string `json:"default_exclude_rules"` // 只读：恢复推荐规则
-	TrustProxy               bool     `json:"trust_proxy"`
-	AccessLogDir             string   `json:"access_log_dir"`
-	IP2LocationV4Path        string   `json:"ip2location_v4_path"`
-	IP2LocationV6Path        string   `json:"ip2location_v6_path"`
-	IP2LocationV4Available   bool     `json:"ip2location_v4_available"`
-	IP2LocationV6Available   bool     `json:"ip2location_v6_available"`
-	GeoIPAvailable           bool     `json:"geoip_available"`
-	GeoIPCountryPath         string   `json:"geoip_country_path"`
-	GeoIPASNPath             string   `json:"geoip_asn_path"`
-	GeoIPCountryAvailable    bool     `json:"geoip_country_available"`
-	GeoIPASNAvailable        bool     `json:"geoip_asn_available"`
+	Enabled                bool     `json:"enabled"`
+	RetentionDays          int      `json:"retention_days"`            // page_views 保留
+	AccessLogRetentionDays int      `json:"access_log_retention_days"` // JSONL 请求日志保留
+	ExcludeRules           []string `json:"exclude_rules"`
+	DefaultExcludeRules    []string `json:"default_exclude_rules"` // 只读：恢复推荐规则
+	TrustProxy             bool     `json:"trust_proxy"`
+	AccessLogDir           string   `json:"access_log_dir"`
+	IP2LocationV4Path      string   `json:"ip2location_v4_path"`
+	IP2LocationV6Path      string   `json:"ip2location_v6_path"`
+	IP2LocationV4Available bool     `json:"ip2location_v4_available"`
+	IP2LocationV6Available bool     `json:"ip2location_v6_available"`
+	GeoIPAvailable         bool     `json:"geoip_available"`
+	GeoIPCountryPath       string   `json:"geoip_country_path"`
+	GeoIPASNPath           string   `json:"geoip_asn_path"`
+	GeoIPCountryAvailable  bool     `json:"geoip_country_available"`
+	GeoIPASNAvailable      bool     `json:"geoip_asn_available"`
 }
 
 // OIDCConfig OIDC Provider 全局配置（应用凭证见 oauth_clients）
@@ -690,9 +694,10 @@ func (s *ForumSettingsService) Limits() ForumLimits {
 	widgets := s.AsideWidgets()
 	bools := asideBoolsFromWidgets(widgets)
 	return ForumLimits{
-		PostEditWindowHours:      s.PostEditWindowHours(),
-		PostDeleteWindowHours:    s.PostDeleteWindowHours(),
-		CommentEditWindowMinutes: s.CommentEditWindowMinutes(),
+		PostEditWindowHours:        s.PostEditWindowHours(),
+		PostDeleteWindowHours:      s.PostDeleteWindowHours(),
+		CommentEditWindowMinutes:   s.CommentEditWindowMinutes(),
+		CommentDeleteWindowMinutes: s.CommentDeleteWindowMinutes(),
 
 		RateLimitPost:      s.RateLimitFor("post"),
 		RateLimitComment:   s.RateLimitFor("comment"),
@@ -758,7 +763,8 @@ func (s *ForumSettingsService) PublicLimits() ForumLimitsPublic {
 		PostFileMaxCount:    limits.PostFileMaxCount,
 		PostFileMaxMB:       limits.PostFileMaxMB,
 
-		CommentEditWindowMinutes: limits.CommentEditWindowMinutes,
+		CommentEditWindowMinutes:   limits.CommentEditWindowMinutes,
+		CommentDeleteWindowMinutes: limits.CommentDeleteWindowMinutes,
 
 		OpenPostsInNewTab:        limits.OpenPostsInNewTab,
 		OpenContentLinksInNewTab: limits.OpenContentLinksInNewTab,
@@ -785,26 +791,27 @@ func (s *ForumSettingsService) PublicLimits() ForumLimitsPublic {
 
 func (s *ForumSettingsService) UpdateLimits(in ForumLimits) error {
 	updates := map[string]int{
-		SettingPostEditWindowHours:      in.PostEditWindowHours,
-		SettingPostDeleteWindowHours:    in.PostDeleteWindowHours,
-		SettingCommentEditWindowMinutes: in.CommentEditWindowMinutes,
-		SettingRateLimitPost:            in.RateLimitPost,
-		SettingRateLimitComment:         in.RateLimitComment,
-		SettingRateLimitRegister:        in.RateLimitRegister,
-		SettingRateLimitLogin:           in.RateLimitLogin,
-		SettingRateLimitWindow:          in.RateLimitWindowSec,
-		SettingPostTitleMax:             in.PostTitleMax,
-		SettingPostTagsMax:              in.PostTagsMax,
-		SettingPostContentMax:           in.PostContentMax,
-		SettingCommentMax:               in.CommentMax,
-		SettingSearchKeywordMin:         in.SearchKeywordMin,
-		SettingSearchKeywordMax:         in.SearchKeywordMax,
-		SettingPageSizeDefault:          in.PageSizeDefault,
-		SettingPasswordMinLen:           in.PasswordMinLen,
-		SettingAvatarMaxMB:              in.AvatarMaxMB,
-		SettingSignatureMax:             in.SignatureMax,
-		SettingPostFileMaxCount:         in.PostFileMaxCount,
-		SettingPostFileMaxMB:            in.PostFileMaxMB,
+		SettingPostEditWindowHours:        in.PostEditWindowHours,
+		SettingPostDeleteWindowHours:      in.PostDeleteWindowHours,
+		SettingCommentEditWindowMinutes:   in.CommentEditWindowMinutes,
+		SettingCommentDeleteWindowMinutes: in.CommentDeleteWindowMinutes,
+		SettingRateLimitPost:              in.RateLimitPost,
+		SettingRateLimitComment:           in.RateLimitComment,
+		SettingRateLimitRegister:          in.RateLimitRegister,
+		SettingRateLimitLogin:             in.RateLimitLogin,
+		SettingRateLimitWindow:            in.RateLimitWindowSec,
+		SettingPostTitleMax:               in.PostTitleMax,
+		SettingPostTagsMax:                in.PostTagsMax,
+		SettingPostContentMax:             in.PostContentMax,
+		SettingCommentMax:                 in.CommentMax,
+		SettingSearchKeywordMin:           in.SearchKeywordMin,
+		SettingSearchKeywordMax:           in.SearchKeywordMax,
+		SettingPageSizeDefault:            in.PageSizeDefault,
+		SettingPasswordMinLen:             in.PasswordMinLen,
+		SettingAvatarMaxMB:                in.AvatarMaxMB,
+		SettingSignatureMax:               in.SignatureMax,
+		SettingPostFileMaxCount:           in.PostFileMaxCount,
+		SettingPostFileMaxMB:              in.PostFileMaxMB,
 	}
 	if in.SearchKeywordMax > 0 && in.SearchKeywordMin > in.SearchKeywordMax {
 		return ErrInvalidSetting
@@ -888,6 +895,11 @@ func (s *ForumSettingsService) PostDeleteWindowHours() int {
 
 func (s *ForumSettingsService) CommentEditWindowMinutes() int {
 	return s.getInt(SettingCommentEditWindowMinutes, 3)
+}
+
+// CommentDeleteWindowMinutes 评论作者可自行删除评论的时限（分钟）；0 表示不限
+func (s *ForumSettingsService) CommentDeleteWindowMinutes() int {
+	return s.getInt(SettingCommentDeleteWindowMinutes, 0)
 }
 
 func (s *ForumSettingsService) RateLimitFor(action string) int {

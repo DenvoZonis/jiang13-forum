@@ -261,6 +261,7 @@ export interface ForumLimits {
   post_edit_window_hours: number;
   post_delete_window_hours: number;
   comment_edit_window_minutes: number;
+  comment_delete_window_minutes: number;
   rate_limit_post: number;
   rate_limit_comment: number;
   rate_limit_register: number;
@@ -317,6 +318,7 @@ export interface ForumLimitsPublic {
   post_content_max: number;
   comment_max: number;
   comment_edit_window_minutes: number;
+  comment_delete_window_minutes: number;
   search_keyword_min: number;
   search_keyword_max: number;
   page_size_default: number;

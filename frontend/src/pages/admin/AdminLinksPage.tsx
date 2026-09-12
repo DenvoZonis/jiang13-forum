@@ -374,6 +374,7 @@ export default function AdminLinksPage() {
           post_edit_window_hours: 24,
           post_delete_window_hours: 24,
           comment_edit_window_minutes: 3,
+          comment_delete_window_minutes: 0,
           rate_limit_post: 10,
           rate_limit_comment: 10,
           rate_limit_register: 10,

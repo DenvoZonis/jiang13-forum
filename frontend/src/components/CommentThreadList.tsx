@@ -68,6 +68,17 @@ function canEditComment(c: Comment, user: User | null | undefined, windowMinutes
   return Date.now() - created <= windowMinutes * 60_000;
 }
 
+/** 是否可删除评论：管理员始终可删；作者须在可删除时限内（0 = 不限） */
+function canDeleteComment(c: Comment, user: User | null | undefined, windowMinutes: number): boolean {
+  if (!user) return false;
+  if (user.role === 'admin') return true;
+  if (!isCommentAuthor(c, user)) return false;
+  if (windowMinutes <= 0) return true;
+  const created = new Date(c.created_at).getTime();
+  if (Number.isNaN(created)) return false;
+  return Date.now() - created <= windowMinutes * 60_000;
+}
+
 interface ItemProps {
   node: CommentNode;
   nested?: boolean;
@@ -123,6 +134,7 @@ function CommentItem({
   const isEditing = editingId === c.id;
   const isAdmin = currentUser?.role === 'admin';
   const editWindowMinutes = limits.comment_edit_window_minutes ?? 3;
+  const deleteWindowMinutes = limits.comment_delete_window_minutes ?? 0;
   // 到期后强制重渲染，使「编辑」按钮自动消失
   const [, setEditExpireTick] = useState(0);
   useEffect(() => {
@@ -137,14 +149,15 @@ function CommentItem({
     return () => window.clearTimeout(timer);
   }, [c.created_at, c.id, c.user_id, currentUser, editWindowMinutes]);
   const canEdit = canEditComment(c, currentUser, editWindowMinutes);
-  const canDelete = isAdmin;
+  const canDelete = canDeleteComment(c, currentUser, deleteWindowMinutes);
+  const deleteBlocked = !isAdmin && isCommentAuthor(c, currentUser) && !canDelete;
   const showEdited = !hidden && !!c.updated_at && isTimeDiffSignificant(c.created_at, c.updated_at);
   const canReport = !hidden && !isEditing && !isCommentAuthor(c, currentUser);
   const showHistory = isAdmin && showEdited;
   const showManageMenu = !hidden && !isEditing && (
-    canEdit || showHistory || canDelete || canReport
+    canEdit || showHistory || canDelete || canReport || deleteBlocked
   );
-  const showManageGroup = canEdit || showHistory || canDelete;
+  const showManageGroup = canEdit || showHistory || canDelete || deleteBlocked;
   const [editText, setEditText] = useState(c.content);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -401,6 +414,12 @@ function CommentItem({
                         删除
                       </DropdownMenuItem>
                     )}
+                    {deleteBlocked && (
+                      <DropdownMenuItem disabled title="已超过可删除时限">
+                        <Trash2 size={14} aria-hidden />
+                        已超过可删除时限，请联系管理员删除
+                      </DropdownMenuItem>
+                    )}
                     {canReport && <DropdownMenuSeparator />}
                   </>
                 )}
@@ -422,9 +441,11 @@ function CommentItem({
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>确定删除该评论？</AlertDialogTitle>
-              <AlertDialogDescription>
-                将同时移入回收站其下所有回复，可在后台恢复或永久删除。
-              </AlertDialogDescription>
+            <AlertDialogDescription>
+              {isAdmin
+                ? '将同时移入回收站其下所有回复，可在后台恢复或永久删除。'
+                : '评论将移入回收站。若该评论下有他人回复，回复会保留。'}
+            </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel disabled={deleting}>取消</AlertDialogCancel>
