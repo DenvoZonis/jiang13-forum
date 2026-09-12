@@ -18,7 +18,7 @@ import type { PostItem } from '../../api/types';
 import { clearAllFeedCache } from '../../utils/feedCache';
 import { isTimeDiffSignificant } from '../../utils/content';
 
-type Tab = 'pending' | 'active' | 'trash';
+type Tab = 'active' | 'trash';
 type TrashPost = PostItem & { deleted_at: string };
 
 function formatAdminTime(iso: string) {
@@ -35,27 +35,25 @@ export default function AdminPostsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const focusId = Number(searchParams.get('id') || 0) || 0;
   const { ready } = useAdminGuard();
-  const [tab, setTab] = useState<Tab>('pending');
+  const [tab, setTab] = useState<Tab>('active');
   const [posts, setPosts] = useState<PostItem[]>([]);
   const [trash, setTrash] = useState<TrashPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [pendingCount, setPendingCount] = useState(0);
   const [keyword, setKeyword] = useState('');
   const [search, setSearch] = useState('');
   const [highlightId, setHighlightId] = useState<number | null>(focusId > 0 ? focusId : null);
   const focusTriedRef = useRef(false);
   const highlightTimer = useRef<ReturnType<typeof setTimeout>>();
 
-  const loadActive = (p = page, kw = search, status = tab === 'pending' ? 'pending' : 'all') => {
+  const loadActive = (p = page, kw = search) => {
     setLoading(true);
-    api.adminPosts({ page: p, keyword: kw, status })
+    api.adminPosts({ page: p, keyword: kw, status: 'all' })
       .then(d => {
         setPosts(d.posts ?? []);
         setPage(d.page);
         setTotalPages(d.total_pages);
-        setPendingCount(d.pending_count ?? 0);
       })
       .catch(e => notify.error(e.message))
       .finally(() => setLoading(false));
@@ -75,19 +73,7 @@ export default function AdminPostsPage() {
 
   const load = (p = 1, kw = search) => {
     if (tab === 'trash') loadTrash(p, kw);
-    else loadActive(p, kw, tab === 'pending' ? 'pending' : 'all');
-  };
-
-  const approvePost = async (post: PostItem) => {
-    try {
-      const r = await api.adminApprovePost(post.id);
-      clearAllFeedCache();
-      window.dispatchEvent(new Event('posts-refresh'));
-      notify.success(r.message);
-      load(page);
-    } catch (e: unknown) {
-      notify.error(e instanceof Error ? e.message : '操作失败');
-    }
+    else loadActive(p, kw);
   };
 
   useEffect(() => {
@@ -120,13 +106,8 @@ export default function AdminPostsPage() {
       return;
     }
 
-    if (tab === 'pending') {
-      setTab('active');
-      return;
-    }
-
     focusTriedRef.current = true;
-    notify.warning('该帖子可能已审核或不在当前列表');
+    notify.warning('该帖子可能不在当前列表');
     const next = new URLSearchParams(searchParams);
     next.delete('id');
     setSearchParams(next, { replace: true });
@@ -168,24 +149,6 @@ export default function AdminPostsPage() {
   const toggleFeature = async (post: PostItem) => {
     try {
       const r = await api.adminFeaturePost(post.id, !post.featured);
-      clearAllFeedCache();
-      window.dispatchEvent(new Event('posts-refresh'));
-      notify.success(r.message);
-      load(page);
-    } catch (e: unknown) {
-      notify.error(e instanceof Error ? e.message : '操作失败');
-    }
-  };
-
-  const rejectPost = async (post: PostItem) => {
-    const reason = window.prompt(`拒绝《${post.title}》并私信通知作者，请填写原因：`);
-    if (reason == null) return;
-    if (!reason.trim()) {
-      notify.warning('请填写拒绝原因');
-      return;
-    }
-    try {
-      const r = await api.adminRejectPost(post.id, reason.trim());
       clearAllFeedCache();
       window.dispatchEvent(new Event('posts-refresh'));
       notify.success(r.message);
@@ -258,22 +221,11 @@ export default function AdminPostsPage() {
         <p>
           {tab === 'trash'
             ? '回收站中的帖子可恢复或永久删除；永久删除后不可撤销'
-            : tab === 'pending'
-              ? '审核普通用户提交的帖子；通过后公开，拒绝后仅作者可见并私信通知'
-              : '推荐、全局置顶、板块置顶、锁定编辑/讨论、删除（移入回收站）；支持按标题、标签或正文搜索'}
+            : '推荐、全局置顶、板块置顶、锁定编辑/讨论、删除（移入回收站）；支持按标题、标签或正文搜索'}
         </p>
       </div>
 
       <div className="admin-tabs" role="tablist" aria-label="帖子视图">
-        <button
-          type="button"
-          role="tab"
-          aria-selected={tab === 'pending'}
-          className={cn('admin-tab', tab === 'pending' && 'active')}
-          onClick={() => switchTab('pending')}
-        >
-          待审核{pendingCount > 0 ? ` (${pendingCount})` : ''}
-        </button>
         <button
           type="button"
           role="tab"
@@ -433,14 +385,6 @@ export default function AdminPostsPage() {
                     </td>
                     <td>
                       <div className="flex gap-1 flex-wrap">
-                        {(p.status === 'pending' || p.status === 'rejected') && (
-                          <Button size="sm" onClick={() => approvePost(p)}>通过</Button>
-                        )}
-                        {p.status !== 'rejected' && (
-                          <Button size="sm" variant="outline" onClick={() => rejectPost(p)}>
-                            拒绝并通知
-                          </Button>
-                        )}
                         <Button size="sm" variant="outline" onClick={() => toggleFeature(p)}>
                           {p.featured ? '取消推荐' : '推荐'}
                         </Button>

@@ -382,66 +382,6 @@ func (h *Handlers) APIAdminComments(c *gin.Context) {
 	})
 }
 
-// APIAdminApproveComment 通过评论审核
-func (h *Handlers) APIAdminApproveComment(c *gin.Context) {
-	id, _ := strconv.ParseUint(c.Param("id"), 10, 64)
-	if err := h.Comment.SetStatus(uint(id), model.ContentStatusPublished); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-	if h.Notify != nil {
-		if comment, err := h.Comment.GetByID(uint(id)); err == nil {
-			comment.Status = model.ContentStatusPublished
-			h.Notify.AsyncNotifyCommentPublished(comment)
-			h.Notify.AsyncNotifyCommentMentions(comment)
-		}
-	}
-	c.JSON(http.StatusOK, gin.H{"message": "评论已通过审核", "status": model.ContentStatusPublished})
-}
-
-// APIAdminRejectComment 拒绝评论并私信通知
-func (h *Handlers) APIAdminRejectComment(c *gin.Context) {
-	id, _ := strconv.ParseUint(c.Param("id"), 10, 64)
-	var req struct {
-		Reason string `json:"reason"`
-	}
-	_ = c.ShouldBindJSON(&req)
-	reason := strings.TrimSpace(req.Reason)
-	if reason == "" {
-		reason = "不符合社区规范"
-	}
-	comment, err := h.Comment.GetByID(uint(id))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-	if err := h.Comment.SetStatus(uint(id), model.ContentStatusRejected); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-	if comment.UserID > 0 {
-		title := comment.Post.Title
-		if title == "" {
-			title = "未知帖子"
-		}
-		pid := comment.PostID
-		cid := comment.ID
-		floor := comment.Floor
-		_, _ = h.Message.SendSystemWithRefs(
-			comment.UserID,
-			"评论未通过审核",
-			service.FormatCommentRejectContent(title, comment.PostID, comment.Floor, reason),
-			model.MessageKindReject,
-			service.SystemNotifyRefs{
-				PostID:    &pid,
-				CommentID: &cid,
-				Floor:     &floor,
-			},
-		)
-	}
-	c.JSON(http.StatusOK, gin.H{"message": "已拒绝该评论并通知作者", "status": model.ContentStatusRejected})
-}
-
 // APIAdminDeleteComment 管理员软删除评论（进入回收站）
 func (h *Handlers) APIAdminDeleteComment(c *gin.Context) {
 	id, _ := strconv.ParseUint(c.Param("id"), 10, 64)

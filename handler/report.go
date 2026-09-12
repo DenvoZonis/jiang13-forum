@@ -3,10 +3,8 @@ package handler
 import (
 	"net/http"
 	"strconv"
-	"strings"
 
 	"github.com/gin-gonic/gin"
-	"git.iioio.com/freefire/jiang13-forum/model"
 	"git.iioio.com/freefire/jiang13-forum/service"
 )
 
@@ -98,66 +96,3 @@ func (h *Handlers) APIAdminHandleReport(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "处理完成", "report": rep})
 }
 
-// APIAdminApprovePost 通过帖子审核
-func (h *Handlers) APIAdminApprovePost(c *gin.Context) {
-	id, _ := strconv.ParseUint(c.Param("id"), 10, 64)
-	if err := h.Post.SetStatus(uint(id), model.ContentStatusPublished); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-	c.JSON(http.StatusOK, gin.H{"message": "帖子已通过审核", "status": model.ContentStatusPublished})
-}
-
-// APIAdminRejectPost 拒绝帖子并私信通知作者（标记为 rejected，不进回收站）
-func (h *Handlers) APIAdminRejectPost(c *gin.Context) {
-	id, _ := strconv.ParseUint(c.Param("id"), 10, 64)
-	var req struct {
-		Reason string `json:"reason"`
-	}
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "参数错误"})
-		return
-	}
-	reason := strings.TrimSpace(req.Reason)
-	if reason == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "请填写拒绝原因"})
-		return
-	}
-
-	post, err := h.Post.FindByID(uint(id))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-	authorID := post.UserID
-	title := post.Title
-	postID := post.ID
-
-	if err := h.Post.SetStatus(postID, model.ContentStatusRejected); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	pid := postID
-	_, msgErr := h.Message.SendSystem(
-		authorID,
-		"帖子《"+title+"》未通过审核",
-		service.FormatRejectContent(title, postID, reason),
-		model.MessageKindReject,
-		&pid,
-		nil,
-	)
-	if msgErr != nil {
-		c.JSON(http.StatusOK, gin.H{
-			"message":  "帖子已拒绝，但私信通知失败：" + msgErr.Error(),
-			"notified": false,
-			"status":   model.ContentStatusRejected,
-		})
-		return
-	}
-	c.JSON(http.StatusOK, gin.H{
-		"message":  "已拒绝该帖并私信通知作者",
-		"notified": true,
-		"status":   model.ContentStatusRejected,
-	})
-}

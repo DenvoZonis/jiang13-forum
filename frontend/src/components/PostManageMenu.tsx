@@ -1,5 +1,4 @@
 import {
-  Ban,
   CircleCheck,
   CircleHelp,
   EllipsisVertical,
@@ -36,8 +35,6 @@ export interface PostManageMenuProps {
   onEdit: () => void;
   onShowRevisions: () => void;
   onToggleResolved: () => void;
-  onApprove: () => void;
-  onReject: () => void;
   onFeature: () => void;
   onPin: () => void;
   onBoardPin: () => void;
@@ -60,8 +57,6 @@ export default function PostManageMenu({
   onEdit,
   onShowRevisions,
   onToggleResolved,
-  onApprove,
-  onReject,
   onFeature,
   onPin,
   onBoardPin,
@@ -129,21 +124,6 @@ export default function PostManageMenu({
 
         {isAdmin && (
           <>
-            <DropdownMenuLabel>审核</DropdownMenuLabel>
-            {(post.status === 'pending' || post.status === 'rejected') && (
-              <DropdownMenuItem onSelect={onApprove}>
-                <CircleCheck size={14} aria-hidden />
-                通过审核
-              </DropdownMenuItem>
-            )}
-            {post.status !== 'rejected' && (
-              <DropdownMenuItem onSelect={onReject}>
-                <Ban size={14} aria-hidden />
-                拒绝并通知
-              </DropdownMenuItem>
-            )}
-            <DropdownMenuSeparator />
-
             <DropdownMenuLabel>展示</DropdownMenuLabel>
             <DropdownMenuItem onSelect={onFeature}>
               <Sparkles size={14} aria-hidden />

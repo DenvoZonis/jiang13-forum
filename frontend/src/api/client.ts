@@ -152,8 +152,6 @@ export const api = {
       status?: string;
     }>(`/api/admin/posts${qs ? `?${qs}` : ''}`);
   },
-  adminApprovePost: (id: number) =>
-    request<{ message: string; status: string }>(`/api/admin/posts/${id}/approve`, { method: 'POST' }),
   adminPinPost: (id: number, pinned: boolean) =>
     request<{ message: string; pinned: boolean }>(`/api/admin/posts/${id}/pin`, {
       method: 'POST', body: JSON.stringify({ pinned }),
@@ -173,10 +171,6 @@ export const api = {
   adminCommentsLockPost: (id: number, locked: boolean) =>
     request<{ message: string; comments_locked: boolean }>(`/api/admin/posts/${id}/comments-lock`, {
       method: 'POST', body: JSON.stringify({ locked }),
-    }),
-  adminRejectPost: (id: number, reason: string) =>
-    request<{ message: string; notified: boolean }>(`/api/admin/posts/${id}/reject`, {
-      method: 'POST', body: JSON.stringify({ reason }),
     }),
   adminReports: (params?: { page?: number; status?: ReportStatus | 'all' | string }) => {
     const q = new URLSearchParams();
@@ -309,12 +303,6 @@ export const api = {
       pending_count?: number;
     }>(`/api/admin/comments${qs ? `?${qs}` : ''}`);
   },
-  adminApproveComment: (id: number) =>
-    request<{ message: string; status: string }>(`/api/admin/comments/${id}/approve`, { method: 'POST' }),
-  adminRejectComment: (id: number, reason?: string) =>
-    request<{ message: string; status: string }>(`/api/admin/comments/${id}/reject`, {
-      method: 'POST', body: JSON.stringify({ reason: reason || '' }),
-    }),
   adminDeleteComment: (id: number) => request(`/api/admin/comments/${id}`, { method: 'DELETE' }),
   adminTrashComments: (params?: { page?: number; keyword?: string }) => {
     const q = new URLSearchParams();

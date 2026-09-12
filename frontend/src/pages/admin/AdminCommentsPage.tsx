@@ -17,7 +17,7 @@ import type { Comment } from '../../api/types';
 import CommentRevisionDialog from '../../components/CommentRevisionDialog';
 import { isTimeDiffSignificant } from '../../utils/content';
 
-type Tab = 'pending' | 'all' | 'trash';
+type Tab = 'all' | 'trash';
 type TrashComment = Comment & { deleted_at: string };
 
 function statusLabel(status?: string) {
@@ -43,26 +43,24 @@ export default function AdminCommentsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const focusId = Number(searchParams.get('id') || 0) || 0;
   const { ready } = useAdminGuard();
-  const [tab, setTab] = useState<Tab>('pending');
+  const [tab, setTab] = useState<Tab>('all');
   const [comments, setComments] = useState<Comment[]>([]);
   const [trash, setTrash] = useState<TrashComment[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [pendingCount, setPendingCount] = useState(0);
   const [revComment, setRevComment] = useState<Comment | null>(null);
   const [highlightId, setHighlightId] = useState<number | null>(focusId > 0 ? focusId : null);
   const focusTriedRef = useRef(false);
   const highlightTimer = useRef<ReturnType<typeof setTimeout>>();
 
-  const loadList = (p = page, st: Tab = tab) => {
+  const loadList = (p = page) => {
     setLoading(true);
-    api.adminComments({ page: p, status: st === 'pending' ? 'pending' : 'all' })
+    api.adminComments({ page: p, status: 'all' })
       .then(d => {
         setComments(d.comments ?? []);
         setPage(d.page);
         setTotalPages(d.total_pages);
-        setPendingCount(d.pending_count ?? 0);
       })
       .catch(e => notify.error(e.message))
       .finally(() => setLoading(false));
@@ -82,7 +80,7 @@ export default function AdminCommentsPage() {
 
   const load = (p = page, st: Tab = tab) => {
     if (st === 'trash') loadTrash(p);
-    else loadList(p, st);
+    else loadList(p);
   };
 
   const switchTab = (next: Tab) => {
@@ -118,43 +116,14 @@ export default function AdminCommentsPage() {
       return;
     }
 
-    // pending 未找到则切到全部再试一次
-    if (tab === 'pending') {
-      setTab('all');
-      setPage(1);
-      return;
-    }
-
     focusTriedRef.current = true;
-    notify.warning('该评论可能已审核或不在当前列表');
+    notify.warning('该评论可能不在当前列表');
     const next = new URLSearchParams(searchParams);
     next.delete('id');
     setSearchParams(next, { replace: true });
   }, [ready, loading, comments, focusId, tab, searchParams, setSearchParams]);
 
   useEffect(() => () => clearTimeout(highlightTimer.current), []);
-
-  const approve = async (id: number) => {
-    try {
-      const r = await api.adminApproveComment(id);
-      notify.success(r.message);
-      load();
-    } catch (e: unknown) {
-      notify.error(e instanceof Error ? e.message : '操作失败');
-    }
-  };
-
-  const reject = async (c: Comment) => {
-    const reason = window.prompt('拒绝原因（将私信通知作者）：', '不符合社区规范');
-    if (reason == null) return;
-    try {
-      const r = await api.adminRejectComment(c.id, reason.trim() || undefined);
-      notify.success(r.message);
-      load();
-    } catch (e: unknown) {
-      notify.error(e instanceof Error ? e.message : '操作失败');
-    }
-  };
 
   const remove = async (id: number) => {
     try {
@@ -195,18 +164,11 @@ export default function AdminCommentsPage() {
         <p>
           {tab === 'trash'
             ? '回收站中的评论可恢复或永久删除；永久删除后不可撤销'
-            : '审核普通用户评论；通过后公开，拒绝后仅作者可见并私信通知。删除将移入回收站。'}
+            : '浏览全部评论；删除将移入回收站。'}
         </p>
       </div>
 
       <div className="admin-tabs" role="tablist">
-        <button
-          type="button"
-          className={cn('admin-tab', tab === 'pending' && 'active')}
-          onClick={() => switchTab('pending')}
-        >
-          待审核{pendingCount > 0 ? ` (${pendingCount})` : ''}
-        </button>
         <button
           type="button"
           className={cn('admin-tab', tab === 'all' && 'active')}
@@ -341,12 +303,6 @@ export default function AdminCommentsPage() {
                     <td>{formatAdminTime(c.created_at)}</td>
                     <td>
                       <div className="flex gap-1 flex-wrap">
-                        {(c.status === 'pending' || c.status === 'rejected') && (
-                          <Button size="sm" onClick={() => approve(c.id)}>通过</Button>
-                        )}
-                        {c.status === 'pending' && (
-                          <Button size="sm" variant="outline" onClick={() => reject(c)}>拒绝</Button>
-                        )}
                         {c.updated_at && isTimeDiffSignificant(c.created_at, c.updated_at) && (
                           <Button size="sm" variant="outline" onClick={() => setRevComment(c)}>编辑记录</Button>
                         )}

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FileText, Flag, MessageSquare, Link2, Activity } from 'lucide-react';
+import { Flag, Link2, Activity } from 'lucide-react';
 import { Spinner } from '@/components/ui/spinner';
 import { Badge } from '@/components/ui/badge';
 import { api } from '../../api/client';
@@ -51,32 +51,14 @@ export default function AdminDashboardPage() {
   }
   if (!data) return null;
 
-  const pendingPosts = data.pending_posts ?? 0;
-  const pendingComments = data.pending_comments ?? 0;
   const pendingReports = data.pending_reports ?? 0;
   const pendingFriendLinks = data.pending_friend_links ?? 0;
-  const pendingTotal = pendingPosts + pendingComments + pendingReports + pendingFriendLinks;
+  const pendingTotal = pendingReports + pendingFriendLinks;
   const traffic: AdminDashboardTraffic = data.traffic ?? {
     enabled: false, today_pv: 0, today_uv: 0, yesterday_pv: 0, total_pv: 0,
   };
 
   const queues = [
-    {
-      key: 'posts',
-      label: '待审帖子',
-      count: pendingPosts,
-      hint: '新帖与修改',
-      to: '/admin/posts',
-      icon: FileText,
-    },
-    {
-      key: 'comments',
-      label: '待审评论',
-      count: pendingComments,
-      hint: '评论与回复',
-      to: '/admin/comments',
-      icon: MessageSquare,
-    },
     {
       key: 'reports',
       label: '待处理举报',
