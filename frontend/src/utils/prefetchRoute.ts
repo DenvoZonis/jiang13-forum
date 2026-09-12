@@ -44,6 +44,8 @@ type PostDetailSnapshot = {
   isEdited: boolean;
   editBlockReason: string;
   editWindowHours: number;
+  canDelete: boolean;
+  deleteBlockReason: string;
   bountyCanRefund: boolean;
   bountyRefundBlockReason: string;
   bountyEligibleReplyCount: number;
@@ -161,6 +163,8 @@ async function prefetchPost(id: number, force: boolean): Promise<void> {
       ?? isTimeDiffSignificant(detail.post.created_at, detail.post.updated_at ?? detail.post.created_at),
     editBlockReason: detail.edit_block_reason ?? '',
     editWindowHours: detail.post_edit_window_hours ?? 0,
+    canDelete: detail.can_delete ?? false,
+    deleteBlockReason: detail.delete_block_reason ?? '',
     bountyCanRefund: detail.bounty_can_refund ?? true,
     bountyRefundBlockReason: detail.bounty_refund_block_reason ?? '',
     bountyEligibleReplyCount: detail.bounty_eligible_reply_count ?? 0,

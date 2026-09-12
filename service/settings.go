@@ -15,6 +15,7 @@ import (
 // 论坛设置键名
 const (
 	SettingPostEditWindowHours      = "post_edit_window_hours"
+	SettingPostDeleteWindowHours    = "post_delete_window_hours"
 	SettingCommentEditWindowMinutes = "comment_edit_window_minutes"
 
 	SettingRateLimitPost     = "rate_limit_post"
@@ -132,6 +133,7 @@ const (
 // ForumLimits 论坛可配置限制（API 传输结构）
 type ForumLimits struct {
 	PostEditWindowHours      int `json:"post_edit_window_hours"`
+	PostDeleteWindowHours    int `json:"post_delete_window_hours"`
 	CommentEditWindowMinutes int `json:"comment_edit_window_minutes"`
 
 	RateLimitPost      int `json:"rate_limit_post"`
@@ -275,6 +277,7 @@ type settingDef struct {
 
 var forumSettingDefs = []settingDef{
 	{SettingPostEditWindowHours, "24", 0, 0},
+	{SettingPostDeleteWindowHours, "24", 0, 0},
 	{SettingCommentEditWindowMinutes, "3", 0, 0},
 
 	{SettingRateLimitPost, "10", 1, 1000},
@@ -688,6 +691,7 @@ func (s *ForumSettingsService) Limits() ForumLimits {
 	bools := asideBoolsFromWidgets(widgets)
 	return ForumLimits{
 		PostEditWindowHours:      s.PostEditWindowHours(),
+		PostDeleteWindowHours:    s.PostDeleteWindowHours(),
 		CommentEditWindowMinutes: s.CommentEditWindowMinutes(),
 
 		RateLimitPost:      s.RateLimitFor("post"),
@@ -782,6 +786,7 @@ func (s *ForumSettingsService) PublicLimits() ForumLimitsPublic {
 func (s *ForumSettingsService) UpdateLimits(in ForumLimits) error {
 	updates := map[string]int{
 		SettingPostEditWindowHours:      in.PostEditWindowHours,
+		SettingPostDeleteWindowHours:    in.PostDeleteWindowHours,
 		SettingCommentEditWindowMinutes: in.CommentEditWindowMinutes,
 		SettingRateLimitPost:            in.RateLimitPost,
 		SettingRateLimitComment:         in.RateLimitComment,
@@ -874,6 +879,11 @@ func (s *ForumSettingsService) UpdateLimits(in ForumLimits) error {
 
 func (s *ForumSettingsService) PostEditWindowHours() int {
 	return s.getInt(SettingPostEditWindowHours, 24)
+}
+
+// PostDeleteWindowHours 帖主可自行删除帖子的时限（小时）；0 表示不限
+func (s *ForumSettingsService) PostDeleteWindowHours() int {
+	return s.getInt(SettingPostDeleteWindowHours, 24)
 }
 
 func (s *ForumSettingsService) CommentEditWindowMinutes() int {

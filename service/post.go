@@ -597,6 +597,34 @@ func (s *PostService) checkEditable(post *model.Post, isAdmin bool) error {
 	return nil
 }
 
+// checkDeletable 校验指定用户是否可删除帖子：管理员始终可删；帖主须在可删除时限内。
+func (s *PostService) checkDeletable(post *model.Post, userID uint, isAdmin bool) error {
+	if isAdmin {
+		return nil
+	}
+	if userID == 0 || post.UserID != userID {
+		return ErrPermissionDenied
+	}
+	window := s.settings.PostDeleteWindowHours()
+	if window > 0 && time.Since(post.CreatedAt) > time.Duration(window)*time.Hour {
+		return ErrPostDeleteExpired
+	}
+	return nil
+}
+
+// CanUserDelete 判断指定用户是否可删除帖子
+func (s *PostService) CanUserDelete(post *model.Post, userID uint, isAdmin bool) bool {
+	return s.checkDeletable(post, userID, isAdmin) == nil
+}
+
+// UserDeleteBlockReason 返回用户不可删除帖子的原因（可删除时返回空字符串）
+func (s *PostService) UserDeleteBlockReason(post *model.Post, userID uint, isAdmin bool) string {
+	if err := s.checkDeletable(post, userID, isAdmin); err != nil {
+		return err.Error()
+	}
+	return ""
+}
+
 // CanUserEdit 判断指定用户是否可编辑帖子
 func (s *PostService) CanUserEdit(post *model.Post, userID uint, isAdmin bool) bool {
 	if userID == 0 {
@@ -665,14 +693,15 @@ func (s *PostService) GetRevision(postID, revID uint) (*model.PostRevision, erro
 	return &rev, nil
 }
 
-// Delete 软删除帖子及其评论（进入回收站）；点赞/收藏保留以便恢复。仅管理员可删。
+// Delete 软删除帖子及其评论（进入回收站）；点赞/收藏保留以便恢复。
+// 管理员可删任意帖；帖主仅可在可删除时限内删除自己的帖子。
 func (s *PostService) Delete(userID, postID uint, isAdmin bool) error {
-	if !isAdmin {
-		return ErrPermissionDenied
-	}
 	var post model.Post
 	if err := model.DB.First(&post, postID).Error; err != nil {
 		return ErrPostNotFound
+	}
+	if err := s.checkDeletable(&post, userID, isAdmin); err != nil {
+		return err
 	}
 	return model.DB.Transaction(func(tx *gorm.DB) error {
 		if err := RefundBountyIfOpen(tx, &post); err != nil {

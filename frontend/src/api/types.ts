@@ -163,8 +163,14 @@ export interface PostDetailResponse {
   has_replied?: boolean;
   can_edit?: boolean;
   edit_block_reason?: string;
+  /** 当前用户是否可删除该帖（帖主在可删除时限内或管理员） */
+  can_delete?: boolean;
+  /** 不可删除的原因（可删除时为空） */
+  delete_block_reason?: string;
   is_edited?: boolean;
   post_edit_window_hours?: number;
+  /** 帖主可删除帖子的时限（小时），0 = 不限 */
+  post_delete_window_hours?: number;
   poll?: PollView;
   lottery?: PostLotteryView;
   attachments?: PostAttachment[];
@@ -253,6 +259,7 @@ export const DEFAULT_FEED_SORT_TABS: FeedSortTab[] = [
 
 export interface ForumLimits {
   post_edit_window_hours: number;
+  post_delete_window_hours: number;
   comment_edit_window_minutes: number;
   rate_limit_post: number;
   rate_limit_comment: number;

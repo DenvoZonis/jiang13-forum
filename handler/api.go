@@ -1010,17 +1010,25 @@ func (h *Handlers) APIPostDetail(c *gin.Context) {
 	if !canEdit && uid > 0 {
 		editReason = h.Post.UserEditBlockReason(post, uid, isAdmin)
 	}
+	canDelete := h.Post.CanUserDelete(post, uid, isAdmin)
+	deleteReason := ""
+	if !canDelete && uid > 0 {
+		deleteReason = h.Post.UserDeleteBlockReason(post, uid, isAdmin)
+	}
 	isEdited := post.UpdatedAt.Sub(post.CreatedAt) > time.Minute
 	resp := gin.H{
-		"post":                   post,
-		"comment_count":          len(comments),
-		"liked":                  h.Post.IsLiked(uid, uint(id)),
-		"favorited":              h.Post.IsFavorited(uid, uint(id)),
-		"has_replied":            hasReplied,
-		"can_edit":               canEdit,
-		"edit_block_reason":      editReason,
-		"is_edited":              isEdited,
-		"post_edit_window_hours": h.Settings.PostEditWindowHours(),
+		"post":                     post,
+		"comment_count":            len(comments),
+		"liked":                    h.Post.IsLiked(uid, uint(id)),
+		"favorited":                h.Post.IsFavorited(uid, uint(id)),
+		"has_replied":              hasReplied,
+		"can_edit":                 canEdit,
+		"edit_block_reason":        editReason,
+		"can_delete":               canDelete,
+		"delete_block_reason":      deleteReason,
+		"is_edited":                isEdited,
+		"post_edit_window_hours":   h.Settings.PostEditWindowHours(),
+		"post_delete_window_hours": h.Settings.PostDeleteWindowHours(),
 	}
 	if post.PostType == model.PostTypePoll {
 		if poll, err := service.GetPollView(uint(id), uid); err == nil {

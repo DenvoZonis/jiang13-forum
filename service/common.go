@@ -27,6 +27,7 @@ var (
 	ErrPostEditLocked        = errors.New("帖子已被管理员锁定，无法编辑")
 	ErrPostCommentsLocked    = errors.New("该帖子已锁定讨论，无法评论")
 	ErrPostEditExpired       = errors.New("已超过可编辑时限")
+	ErrPostDeleteExpired     = errors.New("已超过可删除时限，请联系管理员删除")
 	ErrRevisionNotFound      = errors.New("历史版本不存在")
 	ErrInvalidSetting        = errors.New("无效的设置值")
 	ErrSearchKeywordTooShort = errors.New("搜索关键词过短")

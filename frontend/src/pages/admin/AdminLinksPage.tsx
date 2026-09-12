@@ -372,6 +372,7 @@ export default function AdminLinksPage() {
           permalink_enabled: false,
           permalink_ext: 'html',
           post_edit_window_hours: 24,
+          post_delete_window_hours: 24,
           comment_edit_window_minutes: 3,
           rate_limit_post: 10,
           rate_limit_comment: 10,
