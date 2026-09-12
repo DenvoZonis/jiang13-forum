@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Copy, Trash2, ExternalLink } from 'lucide-react';
+import { Copy, Trash2, ExternalLink, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -20,13 +20,18 @@ import { useAdminGuard } from '../../layouts/AdminLayout';
 import type { MediaItem } from '../../api/types';
 import { cn } from '@/lib/utils';
 
-type CategoryTab = 'all' | 'avatars' | 'posts' | 'site';
+type CategoryTab = 'all' | 'avatars' | 'posts' | 'site' | 'files';
 
 const CATEGORY_LABEL: Record<string, string> = {
   avatars: '头像',
   posts: '帖子图',
   site: '站点资源',
+  files: '附件',
 };
+
+function isImageFile(item: MediaItem): boolean {
+  return /\.(jpe?g|png|gif|webp)$/i.test(item.name);
+}
 
 function formatBytes(n: number): string {
   if (!Number.isFinite(n) || n < 0) return '—';
@@ -143,6 +148,7 @@ export default function AdminMediaPage() {
     { key: 'avatars', label: `头像 (${counts.avatars || 0})` },
     { key: 'posts', label: `帖子图 (${counts.posts || 0})` },
     { key: 'site', label: `站点 (${counts.site || 0})` },
+    { key: 'files', label: `附件 (${counts.files || 0})` },
   ];
 
   return (
@@ -150,7 +156,7 @@ export default function AdminMediaPage() {
       <div className="admin-page-head">
         <h1>媒体库</h1>
         <p>
-          浏览并管理上传资源（头像 / 帖子图 / 站点品牌图）。当前存储：
+          浏览并管理上传资源（头像 / 帖子图 / 站点品牌图 / 附件）。当前存储：
           {storageType === 's3' ? 'S3 兼容' : '本地磁盘'}
           。列表来自数据库索引；删除会同时清理伴生原图/WebP。
         </p>
@@ -241,7 +247,13 @@ export default function AdminMediaPage() {
                     rel="noreferrer"
                     title={f.name}
                   >
-                    <img src={f.url} alt="" loading="lazy" decoding="async" />
+                    {isImageFile(f) ? (
+                      <img src={f.url} alt="" loading="lazy" decoding="async" />
+                    ) : (
+                      <span className="admin-media-file" aria-hidden>
+                        <FileText size={28} strokeWidth={1.5} />
+                      </span>
+                    )}
                   </a>
                   <div className="admin-media-meta">
                     <div className="admin-media-name" title={f.name}>{f.name}</div>

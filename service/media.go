@@ -40,6 +40,7 @@ var mediaCategories = []string{
 	UploadCategoryAvatars,
 	UploadCategoryPosts,
 	UploadCategorySite,
+	UploadCategoryFiles,
 }
 
 // ListMedia 从数据库索引列出媒体（上传/删除时维护；启动时会扫盘回填）
@@ -78,6 +79,7 @@ func (s *UploadStore) ListMedia(category, query string, page, size int) (*MediaL
 		UploadCategoryAvatars: 0,
 		UploadCategoryPosts:   0,
 		UploadCategorySite:    0,
+		UploadCategoryFiles:   0,
 	}
 	type catCount struct {
 		Category string
@@ -490,7 +492,7 @@ func (s *UploadStore) listMediaLocal(category string) ([]MediaItem, error) {
 				continue
 			}
 			ext := strings.ToLower(filepath.Ext(name))
-			if !allowedImageExt[ext] {
+			if cat != UploadCategoryFiles && !allowedImageExt[ext] {
 				continue
 			}
 			info, err := e.Info()
@@ -542,7 +544,7 @@ func (s *UploadStore) listMediaS3(category string) ([]MediaItem, error) {
 				continue
 			}
 			ext := strings.ToLower(filepath.Ext(name))
-			if !allowedImageExt[ext] {
+			if cat != UploadCategoryFiles && !allowedImageExt[ext] {
 				continue
 			}
 			out = append(out, MediaItem{
@@ -561,7 +563,7 @@ func (s *UploadStore) listMediaS3(category string) ([]MediaItem, error) {
 
 func validMediaCategory(cat string) bool {
 	switch cat {
-	case UploadCategoryAvatars, UploadCategoryPosts, UploadCategorySite:
+	case UploadCategoryAvatars, UploadCategoryPosts, UploadCategorySite, UploadCategoryFiles:
 		return true
 	default:
 		return false
