@@ -26,13 +26,13 @@ body { overflow: hidden; font-size: 14px; line-height: 1.5; }
     --card-foreground: 222 47% 11%;
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
-    --primary: 152 72% 36%;
+    --primary: 201 100% 50%;
     --primary-foreground: 0 0% 100%;
     --secondary: 210 20% 96%;
     --secondary-foreground: 222 47% 11%;
     --muted: 210 20% 96%;
     --muted-foreground: 215 16% 47%;
-    --accent: 152 45% 95%;
+    --accent: 194 100% 81%;
     --accent-foreground: 152 72% 28%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
@@ -85,10 +85,10 @@ body { overflow: hidden; font-size: 14px; line-height: 1.5; }
     "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei UI", "Microsoft YaHei",
     "Source Han Sans SC", "Noto Sans SC", "WenQuanYi Micro Hei",
     system-ui, -apple-system, "Segoe UI", sans-serif;
-  --j13-green: #18a058;
-  --j13-green-hover: #138f4c;
-  --j13-green-bg: rgba(24, 160, 88, 0.08);
-  --j13-green-soft: #edfbf3;
+  --j13-green: #00a5ff;
+  --j13-green-hover: #0480c4;
+  --j13-green-bg: rgba(24, 119, 160, 0.08);
+  --j13-green-soft: #edf8fb;
   --j13-border: #e8edf2;
   --j13-border-light: #f0f3f7;
   --j13-sidebar-w: 210px;
@@ -125,10 +125,10 @@ body { overflow: hidden; font-size: 14px; line-height: 1.5; }
 }
 
 .dark {
-  --j13-green: #23c36b;
-  --j13-green-hover: #1fb35f;
-  --j13-green-bg: rgba(35, 195, 107, 0.12);
-  --j13-green-soft: rgba(35, 195, 107, 0.08);
+  --j13-green: #00a5ff;
+  --j13-green-hover: #0480c4;
+  --j13-green-bg: rgba(24, 119, 160, 0.08);
+  --j13-green-soft: #edf8fb;
   --j13-border: #2e2e32;
   --j13-border-light: #262629;
   --j13-bg-page: #141416;
