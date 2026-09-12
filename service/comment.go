@@ -44,14 +44,12 @@ type CommentCreateInput struct {
 	IsPrivate  bool
 }
 
-func (s *CommentService) canViewPrivate(c model.Comment, viewerID uint, isAdmin bool, postAuthorID uint, guestSet map[uint]struct{}) bool {
+// canSeePrivateAuthor 匿名（隐私）评论的身份是否对查看者可见：仅管理员与评论作者本人。
+func (s *CommentService) canSeePrivateAuthor(c model.Comment, viewerID uint, isAdmin bool, guestSet map[uint]struct{}) bool {
 	if !c.IsPrivate {
 		return true
 	}
 	if isAdmin {
-		return true
-	}
-	if viewerID > 0 && viewerID == postAuthorID {
 		return true
 	}
 	if c.UserID > 0 && viewerID == c.UserID {
@@ -61,6 +59,16 @@ func (s *CommentService) canViewPrivate(c model.Comment, viewerID uint, isAdmin 
 		return true
 	}
 	return false
+}
+
+// maskCommentAuthor 对匿名评论抹除作者身份（保留正文），供普通用户查看。
+func maskCommentAuthor(c *model.Comment) {
+	c.AuthorHidden = true
+	c.User = model.User{}
+	c.UserID = 0
+	c.GuestNick = ""
+	c.GuestEmail = ""
+	c.GuestURL = ""
 }
 
 func (s *CommentService) fillReplyTargets(comments []model.Comment, loadMissing bool) {
@@ -119,9 +127,9 @@ func (s *CommentService) ListByPost(postID, viewerID uint, isAdmin bool, postAut
 		if !canViewComment(comments[i], viewerID, isAdmin) {
 			continue
 		}
-		if comments[i].IsPrivate && !s.canViewPrivate(comments[i], viewerID, isAdmin, postAuthorID, guestSet) {
-			comments[i].ContentHidden = true
-			comments[i].Content = ""
+		// 匿名（隐私）评论：所有人可见正文，仅作者/管理员可见身份
+		if comments[i].IsPrivate && !s.canSeePrivateAuthor(comments[i], viewerID, isAdmin, guestSet) {
+			maskCommentAuthor(&comments[i])
 		}
 		visibleIDs[comments[i].ID] = struct{}{}
 		visible = append(visible, comments[i])
@@ -134,10 +142,18 @@ func (s *CommentService) ListByPost(postID, viewerID uint, isAdmin bool, postAut
 
 	s.fillReplyTargets(visible, true)
 	for i := range visible {
-		if rt := visible[i].ReplyTarget; rt != nil && !canViewComment(*rt, viewerID, isAdmin) {
+		rt := visible[i].ReplyTarget
+		if rt == nil {
+			continue
+		}
+		if !canViewComment(*rt, viewerID, isAdmin) {
 			// 不可见父评论仅保留昵称供 @，不泄露正文
 			rt.Content = ""
 			rt.ContentHidden = true
+			continue
+		}
+		if rt.IsPrivate && !s.canSeePrivateAuthor(*rt, viewerID, isAdmin, guestSet) {
+			maskCommentAuthor(rt)
 		}
 	}
 	s.fillLiked(visible, viewerID)

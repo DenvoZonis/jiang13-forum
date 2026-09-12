@@ -5,8 +5,9 @@ export interface CommentNode {
   children: CommentNode[];
 }
 
-/** 评论显示昵称 */
+/** 评论显示昵称（匿名评论对普通用户显示为「匿名用户」） */
 export function commentNick(c: Comment): string {
+  if (c.author_hidden) return '匿名用户';
   if (c.user?.nickname) return c.user.nickname;
   if (c.guest_nick) return c.guest_nick;
   return '游客';
@@ -14,6 +15,7 @@ export function commentNick(c: Comment): string {
 
 /** 评论头像首字 */
 export function commentInitial(c: Comment): string {
+  if (c.author_hidden) return '匿';
   return commentNick(c)[0] || '?';
 }
 

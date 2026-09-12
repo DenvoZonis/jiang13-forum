@@ -267,7 +267,7 @@ export default function AdminCommentsPage() {
                   <th>作者</th>
                   <th>内容</th>
                   <th>状态</th>
-                  <th>私密</th>
+                  <th>匿名</th>
                   <th>时间</th>
                   <th>操作</th>
                 </tr>

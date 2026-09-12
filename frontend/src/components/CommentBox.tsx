@@ -103,16 +103,16 @@ export default function CommentBox({ user, replyTo, inline, submitting, submitCo
             ref={editorRef}
             value={content}
             onChange={setContent}
-            placeholder={isPrivate ? '正在隐私评论中...' : '说点什么吧，可用 @ 提及用户'}
+            placeholder={isPrivate ? '正在匿名评论中...' : '说点什么吧，可用 @ 提及用户'}
           />
         </div>
 
         <div className="comment-box-toolbar">
-          <label className="comment-box-private" title="仅作者与管理员可见">
+          <label className="comment-box-private" title="所有人可见内容，仅你与管理员可见身份">
             <Switch checked={isPrivate} onCheckedChange={setIsPrivate} />
-            <span>隐私评论</span>
+            <span>匿名评论</span>
           </label>
-          <span className="comment-box-private-hint">仅作者与管理员可见</span>
+          <span className="comment-box-private-hint">内容公开，仅你与管理员可见身份</span>
           <button
             type="button"
             className="comment-box-send"

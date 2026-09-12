@@ -271,6 +271,11 @@ function CommentItem({
           ) : (
             <span className="waline-comment-author">{nick}</span>
           )}
+          {c.is_private && (
+            <span className="waline-comment-anon-badge" title="匿名评论：内容公开，仅作者与管理员可见身份">
+              匿名
+            </span>
+          )}
           {isBountyAwarded && (
             <span className="waline-comment-bounty-badge" title="悬赏已采纳">
               <Check size={12} aria-hidden />
@@ -294,7 +299,7 @@ function CommentItem({
 
         {hidden ? (
           <div className="waline-comment-private-mask">
-            该评论为私密评论，仅文章作者与评论发起者可见！
+            该评论已被隐藏
           </div>
         ) : isEditing ? (
           <div className="waline-comment-edit">

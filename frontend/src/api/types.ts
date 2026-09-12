@@ -190,6 +190,8 @@ export interface Comment {
   is_private?: boolean;
   status?: 'pending' | 'published' | 'rejected' | string;
   content_hidden?: boolean;
+  /** 匿名评论：当前查看者不可见作者身份（仅作者/管理员可见） */
+  author_hidden?: boolean;
   like_count?: number;
   liked?: boolean;
   created_at: string;

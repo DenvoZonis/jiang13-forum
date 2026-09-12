@@ -184,7 +184,9 @@ type Comment struct {
 	// ThreadParentID 嵌套展示用父评论（父评论不可见时回挂到最近可见祖先）
 	ThreadParentID *uint `gorm:"-" json:"thread_parent_id,omitempty"`
 	ContentHidden  bool  `gorm:"-" json:"content_hidden"`
-	Liked          bool  `gorm:"-" json:"liked"`
+	// AuthorHidden 匿名（隐私）评论对当前查看者隐藏作者身份（仅作者/管理员可见）
+	AuthorHidden bool `gorm:"-" json:"author_hidden"`
+	Liked        bool `gorm:"-" json:"liked"`
 }
 
 // PostAttachment 帖子附件（真实文件在本地 uploads/files 或对象存储；供正文下方展示与下载）
