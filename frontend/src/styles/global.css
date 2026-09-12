@@ -9926,143 +9926,6 @@ button.profile-stat:hover strong {
   font-weight: 500;
 }
 
-/* 发帖附件面板 */
-.compose-attachments {
-  margin: 0 28px 24px;
-  padding: 12px 14px;
-  border: 1px solid var(--j13-border-light);
-  border-radius: 10px;
-  background: var(--j13-bg-block-muted);
-  flex-shrink: 0;
-}
-
-.compose-attachments-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-.compose-attachments-title {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--color-text-1);
-}
-
-.compose-attachments-count {
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--color-text-3);
-}
-
-.compose-attachments-add {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 5px 12px;
-  border: 1px solid var(--j13-border);
-  border-radius: 8px;
-  background: var(--j13-bg-surface);
-  color: var(--color-text-1);
-  font-size: 13px;
-  cursor: pointer;
-  transition: border-color 0.15s ease, background 0.15s ease;
-}
-
-.compose-attachments-add:hover:not(:disabled) {
-  border-color: var(--j13-green);
-  background: var(--j13-bg-block-accent);
-}
-
-.compose-attachments-add:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.compose-attachments-spin {
-  animation: compose-attachments-spin 0.8s linear infinite;
-}
-
-@keyframes compose-attachments-spin {
-  to { transform: rotate(360deg); }
-}
-
-.compose-attachments-hint {
-  margin: 8px 0 0;
-  font-size: 12px;
-  color: var(--color-text-3);
-}
-
-.compose-attachments-list {
-  list-style: none;
-  margin: 10px 0 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.compose-attachment {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.compose-attachment-link {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 7px 10px;
-  border: 1px solid var(--j13-border-light);
-  border-radius: 8px;
-  background: var(--j13-bg-surface);
-  color: var(--color-text-1);
-  text-decoration: none;
-}
-
-.compose-attachment-link:hover {
-  border-color: var(--j13-green);
-}
-
-.compose-attachment-name {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: 13px;
-}
-
-.compose-attachment-size {
-  font-size: 12px;
-  color: var(--color-text-3);
-  flex-shrink: 0;
-}
-
-.compose-attachment-remove {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 26px;
-  height: 26px;
-  border: none;
-  border-radius: 6px;
-  background: transparent;
-  color: var(--color-text-3);
-  cursor: pointer;
-  transition: color 0.15s ease, background 0.15s ease;
-}
-
-.compose-attachment-remove:hover {
-  color: hsl(var(--destructive));
-  background: color-mix(in srgb, hsl(var(--destructive)) 10%, transparent);
-}
-
 /* ===== 发帖页移动端适配 ===== */
 @media (max-width: 640px) {
   .compose-page {
@@ -11526,6 +11389,115 @@ button.profile-stat:hover strong {
 }
 @keyframes article-image-picker-spin {
   to { transform: rotate(360deg); }
+}
+
+/* 附件上传弹窗（编辑器工具栏「附件」按钮） */
+.article-attachment-dialog {
+  width: min(460px, 92vw);
+  max-width: min(460px, 92vw);
+}
+.article-attachment-dialog__drop {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 120px;
+  padding: 18px 16px;
+  border: 1.5px dashed var(--j13-border);
+  border-radius: 10px;
+  background: var(--j13-bg-block-muted, var(--color-fill-3));
+  color: var(--color-text-2);
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+.article-attachment-dialog__drop p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--color-text-1);
+}
+.article-attachment-dialog__drop.is-dragover {
+  border-color: var(--j13-green);
+  background: var(--j13-green-bg);
+}
+.article-attachment-dialog__drop.is-busy {
+  cursor: wait;
+  pointer-events: none;
+}
+.article-attachment-dialog__drop.is-disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.article-attachment-dialog__spin {
+  animation: article-image-picker-spin 0.8s linear infinite;
+}
+.article-attachment-dialog__list {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+.article-attachment-dialog__item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  border: 1px solid var(--j13-border-light);
+  border-radius: 8px;
+  background: var(--j13-bg-surface);
+}
+.article-attachment-dialog__file-icon {
+  display: inline-flex;
+  flex-shrink: 0;
+  color: var(--color-text-3);
+}
+.article-attachment-dialog__name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+}
+.article-attachment-dialog__size {
+  font-size: 12px;
+  color: var(--color-text-3);
+  flex-shrink: 0;
+}
+.article-attachment-dialog__remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--color-text-3);
+  cursor: pointer;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+.article-attachment-dialog__remove:hover {
+  color: hsl(var(--destructive));
+  background: color-mix(in srgb, hsl(var(--destructive)) 10%, transparent);
+}
+.article-attachment-dialog__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 12px;
+}
+.article-attachment-dialog__count {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+  color: var(--color-text-3);
 }
 
 /* 代码块插入弹窗 */
@@ -15079,6 +15051,15 @@ a.pm-thread-head__name:hover {
 .links-page__list { list-style: none; padding: 0; margin: 0; display: grid; gap: 0.5rem; }
 .links-page__list a { color: var(--primary, #2d6a4f); text-decoration: none; }
 .compose-special { margin-top: 1rem; padding: 1rem; border: 1px solid var(--j13-border); border-radius: 8px; display: grid; gap: 0.75rem; }
+/* 桌面端：投票选项过多时给特殊字段限高并内滚，避免挤压/遮住富文本编辑器与附件区 */
+@media (min-width: 641px) {
+  .compose-special {
+    flex-shrink: 0;
+    max-height: min(320px, 40vh);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+}
 .compose-special__head { display: flex; flex-direction: column; gap: 0.5rem; }
 .compose-special__poll-mode {
   display: flex;

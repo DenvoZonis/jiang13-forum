@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react';
 import ArticleEditor from '../ArticleEditor';
-import ArticleAttachmentPanel from './ArticleAttachmentPanel';
 import type { ForumLimitsPublic, PostAttachmentInput } from '../../api/types';
 import type { PostType } from './ComposeContextBar';
 
@@ -18,7 +17,7 @@ interface Props {
 }
 
 /**
- * 发帖页正文写作模块：标题输入框 + 富文本编辑器 + 附件面板。
+ * 发帖页正文写作模块：标题输入框 + 富文本编辑器（附件入口在编辑器工具栏内）。
  * 受控组件，标题、正文与附件状态由父级持有。
  */
 export default function ComposeDocument({
@@ -47,11 +46,9 @@ export default function ComposeDocument({
         value={content}
         onChange={onContentChange}
         placeholder="开始写作。按回车分段，选中文字后用工具栏设置格式。"
-      />
-      <ArticleAttachmentPanel
+        enableAttachments
         attachments={attachments}
-        onChange={onAttachmentsChange}
-        limits={limits}
+        onAttachmentsChange={onAttachmentsChange}
       />
     </div>
   );
