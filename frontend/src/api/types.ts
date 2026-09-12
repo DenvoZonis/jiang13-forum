@@ -612,6 +612,11 @@ export interface MediaItem {
   size: number;
   modified_at: string;
   content_type: string;
+  /** 被哪篇帖子引用（附件与帖子图） */
+  referenced_post_id?: number;
+  referenced_post_title?: string;
+  /** 引用来源："" 为帖子正文/附件；"comment" 为评论 */
+  referenced_via?: string;
 }
 
 export interface MediaListResult {

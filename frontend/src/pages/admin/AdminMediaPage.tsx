@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Copy, Trash2, ExternalLink, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,6 +19,7 @@ import { notify } from '@/lib/notify';
 import { api } from '../../api/client';
 import { useAdminGuard } from '../../layouts/AdminLayout';
 import type { MediaItem } from '../../api/types';
+import { postPath } from '../../utils/permalink';
 import { cn } from '@/lib/utils';
 
 type CategoryTab = 'all' | 'avatars' | 'posts' | 'site' | 'files';
@@ -42,6 +44,7 @@ function formatBytes(n: number): string {
 
 export default function AdminMediaPage() {
   const { ready } = useAdminGuard();
+  const nav = useNavigate();
   const [category, setCategory] = useState<CategoryTab>('all');
   const [q, setQ] = useState('');
   const [keyword, setKeyword] = useState('');
@@ -264,6 +267,17 @@ export default function AdminMediaPage() {
                     <div className="admin-media-time">
                       {f.modified_at ? new Date(f.modified_at).toLocaleString('zh-CN') : '—'}
                     </div>
+                    {f.referenced_post_id ? (
+                      <button
+                        type="button"
+                        className="admin-media-ref"
+                        title={f.referenced_post_title || `帖子 #${f.referenced_post_id}`}
+                        onClick={() => nav(postPath(f.referenced_post_id!))}
+                      >
+                        引用：{f.referenced_post_title || `#${f.referenced_post_id}`}
+                        {f.referenced_via === 'comment' ? '（评论）' : ''}
+                      </button>
+                    ) : null}
                     <div className="admin-media-actions">
                       <Button size="sm" variant="outline" onClick={() => copyURL(f.url)}>
                         <Copy size={13} aria-hidden />

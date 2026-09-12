@@ -13024,6 +13024,23 @@ button.profile-stat:hover strong {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+.admin-media-ref {
+  width: fit-content;
+  max-width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  font-size: 12px;
+  color: var(--j13-green);
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.admin-media-ref:hover {
+  text-decoration: underline;
+}
 .admin-media-sub,
 .admin-media-time {
   display: flex;
