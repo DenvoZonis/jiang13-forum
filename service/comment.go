@@ -355,11 +355,40 @@ func (s *CommentService) PendingCommentCount() (int64, error) {
 	return n, err
 }
 
+// Delete 删除评论：管理员删除整棵回复树；评论作者可在可删除时限内删除自己的评论（仅本条）。
 func (s *CommentService) Delete(userID, commentID uint, isAdmin bool) error {
-	if !isAdmin {
+	var comment model.Comment
+	if err := model.DB.First(&comment, commentID).Error; err != nil {
+		return ErrCommentNotFound
+	}
+	if err := s.checkDeletable(&comment, userID, isAdmin); err != nil {
+		return err
+	}
+	if isAdmin {
+		// 管理员：连同回复树一并移入回收站
+		ids, err := collectReplySubtreeIDs(model.DB, commentID, false)
+		if err != nil {
+			return err
+		}
+		return model.DB.Where("id IN ?", ids).Delete(&model.Comment{}).Error
+	}
+	// 作者：仅删除本条，保留他人回复（回复会回挂到上级）
+	return model.DB.Delete(&comment).Error
+}
+
+// checkDeletable 校验评论是否可删除：管理员始终可删；作者须在可删除时限内。
+func (s *CommentService) checkDeletable(c *model.Comment, userID uint, isAdmin bool) error {
+	if isAdmin {
+		return nil
+	}
+	if userID == 0 || c.UserID != userID {
 		return ErrPermissionDenied
 	}
-	return s.AdminDelete(commentID)
+	window := s.settings.CommentDeleteWindowMinutes()
+	if window > 0 && time.Since(c.CreatedAt) > time.Duration(window)*time.Minute {
+		return ErrCommentDeleteExpired
+	}
+	return nil
 }
 
 func (s *CommentService) Update(userID, commentID uint, isAdmin, skipModeration bool, content string) (string, bool, error) {

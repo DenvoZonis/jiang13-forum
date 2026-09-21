@@ -31,6 +31,10 @@ export interface PostManageMenuProps {
   isMobile?: boolean;
   editRemaining?: string;
   editBlockReason?: string;
+  /** 当前用户是否可删除该帖（帖主在可删除时限内或管理员） */
+  canDelete?: boolean;
+  /** 不可删除的原因（可删除时为空） */
+  deleteBlockReason?: string;
   deleting?: boolean;
   onEdit: () => void;
   onShowRevisions: () => void;
@@ -43,7 +47,7 @@ export interface PostManageMenuProps {
   onDelete: () => void;
 }
 
-/** 帖子右上角管理菜单：编辑、审核、置顶、锁定、删除等 */
+/** 帖子右上角管理菜单：编辑、置顶、锁定、删除等 */
 export default function PostManageMenu({
   post,
   isAdmin,
@@ -53,6 +57,8 @@ export default function PostManageMenu({
   isMobile,
   editRemaining,
   editBlockReason,
+  canDelete,
+  deleteBlockReason,
   deleting,
   onEdit,
   onShowRevisions,
@@ -69,8 +75,10 @@ export default function PostManageMenu({
     || (isOwnerOrAdmin && isEdited)
     || (isOwnerOrAdmin && post.post_type === 'question');
   const hint = editRemaining || (!canEdit && isOwnerOrAdmin ? editBlockReason : '') || '';
+  /** 帖主删除入口（管理员在下方的危险区单独展示） */
+  const showOwnerDelete = !isAdmin && isOwnerOrAdmin && (canDelete || !!deleteBlockReason);
 
-  if (!showContent && !isAdmin && !hint) return null;
+  if (!showContent && !isAdmin && !hint && !showOwnerDelete) return null;
 
   return (
     <DropdownMenu>
@@ -119,6 +127,28 @@ export default function PostManageMenu({
               </DropdownMenuItem>
             )}
             {isAdmin && <DropdownMenuSeparator />}
+          </>
+        )}
+
+        {showOwnerDelete && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuLabel>危险</DropdownMenuLabel>
+            {canDelete ? (
+              <DropdownMenuItem
+                className="text-destructive focus:text-destructive"
+                disabled={deleting}
+                onSelect={onDelete}
+              >
+                <Trash2 size={14} aria-hidden />
+                删除
+              </DropdownMenuItem>
+            ) : (
+              <DropdownMenuItem disabled className="post-manage-menu-hint">
+                <Trash2 size={14} aria-hidden />
+                {deleteBlockReason || '已超过可删除时限，请联系管理员删除'}
+              </DropdownMenuItem>
+            )}
           </>
         )}
 

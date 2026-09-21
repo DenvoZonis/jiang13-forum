@@ -77,6 +77,8 @@ type PostDetailSnapshot = {
   isEdited: boolean;
   editBlockReason: string;
   editWindowHours: number;
+  canDelete: boolean;
+  deleteBlockReason: string;
   bountyCanRefund: boolean;
   bountyRefundBlockReason: string;
   bountyEligibleReplyCount: number;
@@ -142,6 +144,8 @@ export default function PostDetailPage() {
   const [isEdited, setIsEdited] = useState(initialSnap?.isEdited ?? false);
   const [editBlockReason, setEditBlockReason] = useState(initialSnap?.editBlockReason ?? '');
   const [editWindowHours, setEditWindowHours] = useState(initialSnap?.editWindowHours ?? 0);
+  const [canDelete, setCanDelete] = useState(initialSnap?.canDelete ?? false);
+  const [deleteBlockReason, setDeleteBlockReason] = useState(initialSnap?.deleteBlockReason ?? '');
   const [showRevisions, setShowRevisions] = useState(false);
   const [deletingPost, setDeletingPost] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -245,6 +249,8 @@ export default function PostDetailPage() {
     setIsEdited(snap.isEdited);
     setEditBlockReason(snap.editBlockReason);
     setEditWindowHours(snap.editWindowHours);
+    setCanDelete(snap.canDelete ?? false);
+    setDeleteBlockReason(snap.deleteBlockReason ?? '');
     setBountyCanRefund(snap.bountyCanRefund);
     setBountyRefundBlockReason(snap.bountyRefundBlockReason);
     setBountyEligibleReplyCount(snap.bountyEligibleReplyCount);
@@ -313,6 +319,8 @@ export default function PostDetailPage() {
           isEdited: detail.is_edited ?? isTimeDiffSignificant(detail.post.created_at, detail.post.updated_at ?? detail.post.created_at),
           editBlockReason: detail.edit_block_reason ?? '',
           editWindowHours: detail.post_edit_window_hours ?? 0,
+          canDelete: detail.can_delete ?? false,
+          deleteBlockReason: detail.delete_block_reason ?? '',
           bountyCanRefund: detail.bounty_can_refund ?? true,
           bountyRefundBlockReason: detail.bounty_refund_block_reason ?? '',
           bountyEligibleReplyCount: detail.bounty_eligible_reply_count ?? 0,
@@ -385,6 +393,8 @@ export default function PostDetailPage() {
       isEdited,
       editBlockReason,
       editWindowHours,
+      canDelete,
+      deleteBlockReason,
       bountyCanRefund,
       bountyRefundBlockReason,
       bountyEligibleReplyCount,
@@ -392,7 +402,7 @@ export default function PostDetailPage() {
     });
   }, [
     post, comments, poll, lottery, attachments, liked, favorited, canEdit, isEdited,
-    editBlockReason, editWindowHours, bountyCanRefund, bountyRefundBlockReason,
+    editBlockReason, editWindowHours, canDelete, deleteBlockReason, bountyCanRefund, bountyRefundBlockReason,
     bountyEligibleReplyCount, postId, loading,
   ]);
 
@@ -418,6 +428,8 @@ export default function PostDetailPage() {
       setPoll(detail.poll ?? null);
       setLottery(detail.lottery ?? null);
       setAttachments(detail.attachments ?? []);
+      setCanDelete(detail.can_delete ?? false);
+      setDeleteBlockReason(detail.delete_block_reason ?? '');
       setBountyCanRefund(detail.bounty_can_refund ?? true);
       setBountyRefundBlockReason(detail.bounty_refund_block_reason ?? '');
       setBountyEligibleReplyCount(detail.bounty_eligible_reply_count ?? 0);
@@ -930,6 +942,8 @@ export default function PostDetailPage() {
               isMobile={isMobile}
               editRemaining={editRemaining}
               editBlockReason={editBlockReason}
+              canDelete={canDelete}
+              deleteBlockReason={deleteBlockReason}
               deleting={deletingPost}
               onEdit={() => nav(`/post/${postId}/edit`)}
               onShowRevisions={() => setShowRevisions(true)}
@@ -1160,7 +1174,7 @@ export default function PostDetailPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>确定删除该帖子？</AlertDialogTitle>
             <AlertDialogDescription>
-              帖子与评论将移入回收站，可在后台恢复或永久删除。普通用户不可自行删除内容。
+              帖子与评论将移入回收站，可在后台恢复或永久删除。帖主可在后台配置的时限内自行删除。
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
