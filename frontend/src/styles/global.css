@@ -7265,6 +7265,21 @@ a.waline-comment-author:hover {
   text-decoration: none;
 }
 
+.waline-comment-anon-badge {
+  display: inline-flex;
+  align-items: center;
+  height: 18px;
+  padding: 0 6px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--color-text-3);
+  background: var(--j13-bg-block-muted);
+  border: 1px solid var(--j13-border-light);
+  flex-shrink: 0;
+}
+
 .waline-comment-like {
   margin-left: auto;
   display: inline-flex;
