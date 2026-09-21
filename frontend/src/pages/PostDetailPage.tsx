@@ -1,6 +1,6 @@
 import { useState, useEffect, useLayoutEffect, useRef, useCallback, useMemo } from 'react';
 import { useParams, useNavigate, useOutletContext, useLocation, useNavigationType } from 'react-router-dom';
-import { ArrowLeft, ThumbsUp, Star, Lock, MessageSquare, MessageSquareOff, Flag, MoreHorizontal, Paperclip, Download } from 'lucide-react';
+import { ThumbsUp, Star, Lock, MessageSquare, MessageSquareOff, Flag, MoreHorizontal, Paperclip, Download } from 'lucide-react';
 import FeaturedIcon from '@/components/FeaturedIcon';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -916,10 +916,6 @@ export default function PostDetailPage() {
       <div className="post-detail-header">
         <div className="post-detail-nav">
           <div className="post-detail-nav-left">
-            <Button variant="ghost" size="sm" onClick={() => nav(-1)}>
-              <ArrowLeft />
-              返回
-            </Button>
             {post.board && (
               <BoardBadge board={post.board} className="post-detail-board-tag" />
             )}
