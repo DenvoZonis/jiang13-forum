@@ -11,6 +11,7 @@ import { AuthProvider } from './hooks/useAuth';
 import { ThemeProvider } from './hooks/useTheme';
 import MainLayout from './layouts/MainLayout';
 import AdminLayout from './layouts/AdminLayout';
+import RequireAuth from './components/RequireAuth';
 import ErrorBoundary from './components/ErrorBoundary';
 import AppRouteError from './components/AppRouteError';
 import PageLoader from './components/PageLoader';
@@ -76,7 +77,7 @@ const router = createBrowserRouter(
         <Route path="settings" element={<Suspense fallback={<PageLoader />}><AdminSettingsPage /></Suspense>} />
         <Route path="*" element={<Suspense fallback={<PageLoader />}><NotFoundPage title="后台页面不存在" /></Suspense>} />
       </Route>
-      <Route element={<MainLayout />}>
+      <Route element={<RequireAuth><MainLayout /></RequireAuth>}>
         <Route path="/" element={<HomePage />} />
         <Route path="/board/:id" element={<HomePage />} />
         {/* :id 可为 123 或 123.html（伪静态后缀由后台配置） */}
