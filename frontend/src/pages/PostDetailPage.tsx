@@ -150,9 +150,6 @@ export default function PostDetailPage() {
   const [reportReason, setReportReason] = useState<ReportReason>('spam');
   const [reportDetail, setReportDetail] = useState('');
   const [reporting, setReporting] = useState(false);
-  const [rejectOpen, setRejectOpen] = useState(false);
-  const [rejectReason, setRejectReason] = useState('');
-  const [rejecting, setRejecting] = useState(false);
   const [bountyAwardTarget, setBountyAwardTarget] = useState<number | null>(null);
   const [bountyAwarding, setBountyAwarding] = useState(false);
   const [bountyCanRefund, setBountyCanRefund] = useState(initialSnap?.bountyCanRefund ?? true);
@@ -693,7 +690,7 @@ export default function PostDetailPage() {
       setReplyTo(null);
       setSubmitCount(c => c + 1);
       if (isMobile) setComposerOpen(false);
-      notify.success(r.message || (r.status === 'pending' ? '评论已提交审核' : '评论成功'));
+      notify.success(r.message || '评论成功');
       await Promise.all([reloadComments(), reloadPostContent()]);
       setTimeout(() => jumpToFloor(r.floor), 100);
     } catch (e: unknown) {
@@ -734,19 +731,6 @@ export default function PostDetailPage() {
       notify.success('评论已移入回收站');
     } catch (e: unknown) {
       notify.error(e instanceof Error ? e.message : '删除失败');
-      throw e;
-    }
-  };
-
-  const handleApproveComment = async (comment: Comment) => {
-    try {
-      const r = await api.adminApproveComment(comment.id);
-      setComments(list => list.map(c => (
-        c.id === comment.id ? { ...c, status: r.status } : c
-      )));
-      notify.success(r.message);
-    } catch (e: unknown) {
-      notify.error(e instanceof Error ? e.message : '审核失败');
       throw e;
     }
   };
@@ -873,19 +857,6 @@ export default function PostDetailPage() {
     }
   };
 
-  const handleApprove = async () => {
-    if (!post) return;
-    try {
-      const r = await api.adminApprovePost(postId);
-      setPost(p => p ? { ...p, status: r.status } : p);
-      clearAllFeedCache();
-      window.dispatchEvent(new Event('posts-refresh'));
-      notify.success(r.message);
-    } catch (e: unknown) {
-      notify.error(e instanceof Error ? e.message : '操作失败');
-    }
-  };
-
   const handleReport = async () => {
     if (!user) {
       requireLogin('举报');
@@ -905,26 +876,6 @@ export default function PostDetailPage() {
       notify.error(e instanceof Error ? e.message : '举报失败');
     } finally {
       setReporting(false);
-    }
-  };
-
-  const handleReject = async () => {
-    if (!rejectReason.trim()) {
-      notify.warning('请填写拒绝原因');
-      return;
-    }
-    setRejecting(true);
-    try {
-      const r = await api.adminRejectPost(postId, rejectReason.trim());
-      clearAllFeedCache();
-      window.dispatchEvent(new Event('posts-refresh'));
-      notify.success(r.message);
-      setRejectOpen(false);
-      nav('/');
-    } catch (e: unknown) {
-      notify.error(e instanceof Error ? e.message : '操作失败');
-    } finally {
-      setRejecting(false);
     }
   };
 
@@ -987,8 +938,6 @@ export default function PostDetailPage() {
               onEdit={() => nav(`/post/${postId}/edit`)}
               onShowRevisions={() => setShowRevisions(true)}
               onToggleResolved={handleToggleResolved}
-              onApprove={handleApprove}
-              onReject={() => setRejectOpen(true)}
               onFeature={handleFeature}
               onPin={handlePin}
               onBoardPin={handleBoardPin}
@@ -999,17 +948,6 @@ export default function PostDetailPage() {
           )}
         </div>
 
-        {post.status === 'pending' && (
-          <div className="post-moderation-banner post-moderation-banner--pending">
-            该帖子审核中，仅你与管理员可见；通过后将公开显示。
-          </div>
-        )}
-        {post.status === 'rejected' && (
-          <div className="post-moderation-banner post-moderation-banner--rejected">
-            该帖子未通过审核，仅你与管理员可见。可修改后重新提交，或查看站内私信中的拒绝原因。
-          </div>
-        )}
-
         <div className="post-detail-head">
           <h1 className="post-detail-title">
             {post.pinned && (
@@ -1019,8 +957,6 @@ export default function PostDetailPage() {
               <span className="post-pin-badge post-pin-badge--board post-pin-badge--detail" title="板块置顶">板块置顶</span>
             )}
             {post.featured && <FeaturedIcon className="mr-2" size={18} />}
-            {post.status === 'pending' && <Badge variant="orange" className="mr-2 align-middle">审核中</Badge>}
-            {post.status === 'rejected' && <Badge variant="destructive" className="mr-2 align-middle">未通过</Badge>}
             {post.post_type === 'question' && (
               <span
                 className={`post-qa-badge post-qa-badge--detail${post.question_resolved ? ' post-qa-badge--resolved' : ' post-qa-badge--open'}`}
@@ -1282,33 +1218,6 @@ export default function PostDetailPage() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={rejectOpen} onOpenChange={setRejectOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>拒绝帖子并通知作者</DialogTitle>
-            <DialogDescription>
-              帖子将移入回收站，拒绝原因会通过站内私信发送给作者。
-            </DialogDescription>
-          </DialogHeader>
-          <div className="pm-compose-fields">
-            <label className="pm-field">
-              <span>拒绝原因</span>
-              <textarea
-                value={rejectReason}
-                onChange={(e) => setRejectReason(e.target.value)}
-                rows={5}
-                maxLength={1000}
-                placeholder="请说明未通过的原因…"
-              />
-            </label>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setRejectOpen(false)}>取消</Button>
-            <Button variant="destructive" loading={rejecting} onClick={handleReject}>确认拒绝</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
       <PostRevisionPanel
         postId={postId}
         currentPost={{ title: post.title, content: post.content ?? '', tags: post.tags ?? '' }}
@@ -1398,7 +1307,6 @@ export default function PostDetailPage() {
               onCancelEdit={() => setEditingCommentId(null)}
               onSaveEdit={handleSaveComment}
               onDelete={handleDeleteComment}
-              onApprove={user?.role === 'admin' ? handleApproveComment : undefined}
               onRequireLogin={requireLogin}
               onLikeUpdate={(commentId, liked, likeCount) => {
                 setComments(list => list.map(item => (

@@ -43,10 +43,10 @@ const NAV_GROUPS: NavGroup[] = [
     ],
   },
   {
-    label: '内容审核',
+    label: '内容管理',
     items: [
-      { to: '/admin/posts', label: '帖子管理', icon: FileText, badgeKey: 'posts' },
-      { to: '/admin/comments', label: '评论管理', icon: MessageSquare, badgeKey: 'comments' },
+      { to: '/admin/posts', label: '帖子管理', icon: FileText },
+      { to: '/admin/comments', label: '评论管理', icon: MessageSquare },
       { to: '/admin/reports', label: '举报管理', icon: Flag, badgeKey: 'reports' },
     ],
   },

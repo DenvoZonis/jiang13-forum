@@ -220,11 +220,7 @@ func (s *CommentService) Create(in CommentCreateInput) (*model.Comment, error) {
 		}
 	}
 
-	status := model.ContentStatusPending
-	if user.SkipsModeration() {
-		status = model.ContentStatusPublished
-	}
-
+	// 内部论坛：发布即公开，无需审核
 	comment := &model.Comment{
 		PostID:     in.PostID,
 		UserID:     in.UserID,
@@ -235,14 +231,12 @@ func (s *CommentService) Create(in CommentCreateInput) (*model.Comment, error) {
 		GuestEmail: strings.TrimSpace(in.GuestEmail),
 		GuestURL:   strings.TrimSpace(in.GuestURL),
 		IsPrivate:  in.IsPrivate,
-		Status:     status,
+		Status:     model.ContentStatusPublished,
 	}
 	if err := model.DB.Create(comment).Error; err != nil {
 		return nil, err
 	}
-	if status == model.ContentStatusPublished {
-		AddExp(in.UserID, 2)
-	}
+	AddExp(in.UserID, 2)
 	return comment, nil
 }
 
@@ -389,12 +383,7 @@ func (s *CommentService) Update(userID, commentID uint, isAdmin, skipModeration 
 		if err := tx.Create(&rev).Error; err != nil {
 			return err
 		}
-		updates := map[string]interface{}{"content": content}
-		if !skipModeration {
-			updates["status"] = model.ContentStatusPending
-			enteredPending = true
-		}
-		return tx.Model(&comment).Updates(updates).Error
+		return tx.Model(&comment).Updates(map[string]interface{}{"content": content}).Error
 	})
 	if err != nil {
 		return "", false, err

@@ -519,12 +519,6 @@ func (h *Handlers) APICreatePost(c *gin.Context) {
 		return
 	}
 	msg := "发帖成功"
-	if post.Status == model.ContentStatusPending {
-		msg = "已提交审核，通过后将公开显示"
-		if h.Notify != nil {
-			h.Notify.AsyncNotifyPendingPost(post)
-		}
-	}
 	c.JSON(http.StatusOK, gin.H{"message": msg, "post_id": post.ID, "status": post.Status})
 }
 
@@ -552,12 +546,6 @@ func (h *Handlers) APIUpdatePost(c *gin.Context) {
 	if err := service.SyncPostAttachments(uint(id), uid, h.Store, attachments); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "附件保存失败：" + err.Error()})
 		return
-	}
-	// 非免审用户修改后重新进入审核
-	if !skip && h.Notify != nil {
-		if post, getErr := h.Post.FindByID(uint(id)); getErr == nil {
-			h.Notify.AsyncNotifyPendingPost(post)
-		}
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "帖子已更新"})
 }
@@ -647,20 +635,11 @@ func (h *Handlers) APICreateComment(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	msg := "评论成功"
 	if h.Notify != nil {
-		switch comment.Status {
-		case model.ContentStatusPublished:
-			h.Notify.AsyncNotifyCommentPublished(comment)
-			h.Notify.AsyncNotifyCommentMentions(comment)
-		case model.ContentStatusPending:
-			msg = "评论已提交，审核通过后公开显示"
-			h.Notify.AsyncNotifyPendingComment(comment)
-		}
-	} else if comment.Status == model.ContentStatusPending {
-		msg = "评论已提交，审核通过后公开显示"
+		h.Notify.AsyncNotifyCommentPublished(comment)
+		h.Notify.AsyncNotifyCommentMentions(comment)
 	}
-	c.JSON(http.StatusOK, gin.H{"message": msg, "floor": comment.Floor, "id": comment.ID, "status": comment.Status})
+	c.JSON(http.StatusOK, gin.H{"message": "评论成功", "floor": comment.Floor, "id": comment.ID, "status": comment.Status})
 }
 
 func (h *Handlers) APIDeleteComment(c *gin.Context) {
@@ -676,21 +655,14 @@ func (h *Handlers) APIUpdateComment(c *gin.Context) {
 	id, _ := strconv.ParseUint(c.Param("id"), 10, 64)
 	content := c.PostForm("content")
 	skip := h.skipsModeration(c)
-	saved, enteredPending, err := h.Comment.Update(h.currentUserID(c), uint(id), h.isAdmin(c), skip, content)
+	saved, _, err := h.Comment.Update(h.currentUserID(c), uint(id), h.isAdmin(c), skip, content)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	msg := "评论已更新"
 	status := ""
 	if comment, e := h.Comment.GetByID(uint(id)); e == nil {
 		status = comment.Status
-		if status == model.ContentStatusPending && !h.isAdmin(c) {
-			msg = "评论已更新，审核通过后公开显示"
-		}
-		if enteredPending && h.Notify != nil {
-			h.Notify.AsyncNotifyPendingComment(comment)
-		}
 	}
-	c.JSON(http.StatusOK, gin.H{"message": msg, "content": saved, "status": status})
+	c.JSON(http.StatusOK, gin.H{"message": "评论已更新", "content": saved, "status": status})
 }

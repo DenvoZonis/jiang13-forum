@@ -450,10 +450,7 @@ func (s *PostService) Create(userID, boardID uint, title, content, tags, postTyp
 	if _, err := NewBoardService().GetByID(boardID); err != nil {
 		return nil, err
 	}
-	status := model.ContentStatusPending
-	if skipModeration {
-		status = model.ContentStatusPublished
-	}
+	// 内部论坛：发布即公开，无需审核
 	post := &model.Post{
 		BoardID:          boardID,
 		UserID:           userID,
@@ -463,14 +460,12 @@ func (s *PostService) Create(userID, boardID uint, title, content, tags, postTyp
 		Tags:             tags,
 		PostType:         postType,
 		QuestionResolved: false,
-		Status:           status,
+		Status:           model.ContentStatusPublished,
 	}
 	if err := model.DB.Create(post).Error; err != nil {
 		return nil, err
 	}
-	if status == model.ContentStatusPublished {
-		AddExp(userID, 10)
-	}
+	AddExp(userID, 10)
 	return post, nil
 }
 
@@ -537,10 +532,6 @@ func (s *PostService) Update(userID, postID uint, isAdmin, skipModeration bool, 
 			"tags":              tags,
 			"post_type":         nextType,
 			"question_resolved": nextResolved,
-		}
-		// 非免审用户修改后重新进入审核
-		if !skipModeration {
-			updates["status"] = model.ContentStatusPending
 		}
 		return tx.Model(&post).Updates(updates).Error
 	})

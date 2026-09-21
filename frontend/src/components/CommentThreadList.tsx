@@ -81,7 +81,6 @@ interface ItemProps {
   onCancelEdit: () => void;
   onSaveEdit: (comment: Comment, content: string) => Promise<void>;
   onDelete: (comment: Comment) => Promise<void>;
-  onApprove?: (comment: Comment) => Promise<void>;
   onRequireLogin?: (actionLabel: string) => void;
   onLikeUpdate?: (commentId: number, liked: boolean, likeCount: number) => void;
   renderReplyBox?: (comment: Comment) => ReactNode;
@@ -108,7 +107,6 @@ function CommentItem({
   onCancelEdit,
   onSaveEdit,
   onDelete,
-  onApprove,
   onRequireLogin,
   onLikeUpdate,
   renderReplyBox,
@@ -140,20 +138,16 @@ function CommentItem({
   }, [c.created_at, c.id, c.user_id, currentUser, editWindowMinutes]);
   const canEdit = canEditComment(c, currentUser, editWindowMinutes);
   const canDelete = isAdmin;
-  const canApprove = isAdmin
-    && (c.status === 'pending' || c.status === 'rejected')
-    && !!onApprove;
   const showEdited = !hidden && !!c.updated_at && isTimeDiffSignificant(c.created_at, c.updated_at);
   const canReport = !hidden && !isEditing && !isCommentAuthor(c, currentUser);
   const showHistory = isAdmin && showEdited;
   const showManageMenu = !hidden && !isEditing && (
-    canApprove || canEdit || showHistory || canDelete || canReport
+    canEdit || showHistory || canDelete || canReport
   );
-  const showManageGroup = canApprove || canEdit || showHistory || canDelete;
+  const showManageGroup = canEdit || showHistory || canDelete;
   const [editText, setEditText] = useState(c.content);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const [approving, setApproving] = useState(false);
   const [liking, setLiking] = useState(false);
   const [liked, setLiked] = useState(!!c.liked);
   const [likeCount, setLikeCount] = useState(c.like_count ?? 0);
@@ -334,8 +328,7 @@ function CommentItem({
             <Clock size={14} />
             {formatCommentDate(c.created_at)}
             {isAdmin && showEdited && <span className="waline-comment-edited"> · 已编辑</span>}
-            {c.status === 'pending' && <span className="waline-comment-status waline-comment-status--pending"> · 审核中</span>}
-            {c.status === 'rejected' && <span className="waline-comment-status waline-comment-status--rejected"> · 未通过</span>}
+            {c.status === 'rejected' && <span className="waline-comment-status waline-comment-status--rejected"> · 已隐藏</span>}
           </span>
           {c.reply_target && (
             <span className="waline-reply-at">@{commentNick(c.reply_target)}</span>
@@ -381,24 +374,6 @@ function CommentItem({
                 {showManageGroup && (
                   <>
                     <DropdownMenuLabel>管理</DropdownMenuLabel>
-                    {canApprove && (
-                      <DropdownMenuItem
-                        disabled={approving}
-                        onSelect={() => {
-                          void (async () => {
-                            setApproving(true);
-                            try {
-                              await onApprove?.(c);
-                            } finally {
-                              setApproving(false);
-                            }
-                          })();
-                        }}
-                      >
-                        <Check size={14} aria-hidden />
-                        {approving ? '通过中…' : '通过审核'}
-                      </DropdownMenuItem>
-                    )}
                     {canEdit && (
                       <DropdownMenuItem onSelect={() => onStartEdit(c)}>
                         <Pencil size={14} aria-hidden />
@@ -532,7 +507,6 @@ function CommentItem({
                 onCancelEdit={onCancelEdit}
                 onSaveEdit={onSaveEdit}
                 onDelete={onDelete}
-                onApprove={onApprove}
                 onRequireLogin={onRequireLogin}
                 onLikeUpdate={onLikeUpdate}
                 renderReplyBox={renderReplyBox}
@@ -558,7 +532,6 @@ interface Props {
   onCancelEdit: () => void;
   onSaveEdit: (comment: Comment, content: string) => Promise<void>;
   onDelete: (comment: Comment) => Promise<void>;
-  onApprove?: (comment: Comment) => Promise<void>;
   onRequireLogin?: (actionLabel: string) => void;
   onLikeUpdate?: (commentId: number, liked: boolean, likeCount: number) => void;
   renderReplyBox?: (comment: Comment) => ReactNode;
@@ -578,7 +551,6 @@ export default function CommentThreadList({
   onCancelEdit,
   onSaveEdit,
   onDelete,
-  onApprove,
   onRequireLogin,
   onLikeUpdate,
   renderReplyBox,
@@ -605,7 +577,6 @@ export default function CommentThreadList({
           onCancelEdit={onCancelEdit}
           onSaveEdit={onSaveEdit}
           onDelete={onDelete}
-          onApprove={onApprove}
           onRequireLogin={onRequireLogin}
           onLikeUpdate={onLikeUpdate}
           renderReplyBox={renderReplyBox}

@@ -27,7 +27,6 @@ import type { LayoutCtx } from '../layouts/MainLayout';
 import { loginPath } from '../utils/authRedirect';
 import { useNoIndexSEO } from '../hooks/usePageSEO';
 import { parsePermalinkID, postPath } from '../utils/permalink';
-import { skipsModeration } from '../utils/userMeta';
 import { clearAllFeedCache } from '../utils/feedCache';
 import {
   clearComposeDraft,
@@ -402,7 +401,7 @@ export default function ComposePage() {
       };
       if (isEdit) {
         await api.updatePost(editId!, payload);
-        notify.success(skipsModeration(user) ? '帖子已更新' : '已更新并重新提交审核');
+        notify.success('帖子已更新');
         markSaved();
         // 使帖子详情会话快照与列表缓存失效，返回查看页时重新拉取（含最新附件）
         clearAllFeedCache();
@@ -411,7 +410,7 @@ export default function ComposePage() {
       } else {
         const res = await api.createPost(payload);
         clearComposeDraft();
-        notify.success(res.message || (res.status === 'pending' ? '已提交审核' : '发帖成功'));
+        notify.success(res.message || '发帖成功');
         markSaved();
         clearAllFeedCache();
         window.dispatchEvent(new Event('posts-refresh'));
